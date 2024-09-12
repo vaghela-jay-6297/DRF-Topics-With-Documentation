@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "b081bb96-22dc-4529-9e6e-75ffa76b602d",
+		"name": "DRF filtering",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34945039"
+	},
+	"item": [
+		{
+			"name": "Seraching/Filtering",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api6/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api6",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Planin Vanilla Filtering",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api6/?vname=john",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api6",
+								""
+							],
+							"query": [
+								{
+									"key": "vname",
+									"value": "john"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 20 May 2024 09:47:43 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "WSGIServer/0.2 CPython/3.12.3"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept, Cookie"
+						},
+						{
+							"key": "Allow",
+							"value": "GET, HEAD, OPTIONS"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "Content-Length",
+							"value": "466"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"count\": 5,\n    \"next\": null,\n    \"previous\": null,\n    \"results\": [\n        {\n            \"id\": 15,\n            \"vno\": 3465,\n            \"vname\": \"John Gregory\",\n            \"vsal\": 13138,\n            \"vaddr\": \"East Melissafurt\"\n        },\n        {\n            \"id\": 26,\n            \"vno\": 3083,\n            \"vname\": \"Ronald Johnson\",\n            \"vsal\": 27174,\n            \"vaddr\": \"North Kelly\"\n        },\n        {\n            \"id\": 38,\n            \"vno\": 9494,\n            \"vname\": \"Brenda Johnson\",\n            \"vsal\": 40338,\n            \"vaddr\": \"Lake Adam\"\n        },\n        {\n            \"id\": 60,\n            \"vno\": 2278,\n            \"vname\": \"Jennifer Johnson\",\n            \"vsal\": 32733,\n            \"vaddr\": \"West Sheri\"\n        },\n        {\n            \"id\": 129,\n            \"vno\": 6670,\n            \"vname\": \"John Mueller\",\n            \"vsal\": 26936,\n            \"vaddr\": \"Randymouth\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "DRF filter backends",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api6/?search=jo",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api6",
+								""
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "jo"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 20 May 2024 10:31:32 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "WSGIServer/0.2 CPython/3.12.3"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept, Cookie"
+						},
+						{
+							"key": "Allow",
+							"value": "GET, HEAD, OPTIONS"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "Content-Length",
+							"value": "914"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"count\": 13,\n    \"next\": \"http://127.0.0.1:8000/api6/?page=2&search=jo\",\n    \"previous\": null,\n    \"results\": [\n        {\n            \"id\": 7,\n            \"vno\": 6250,\n            \"vname\": \"Joseph Oneill\",\n            \"vsal\": 12356,\n            \"vaddr\": \"New David\"\n        },\n        {\n            \"id\": 10,\n            \"vno\": 3713,\n            \"vname\": \"Jodi Hess\",\n            \"vsal\": 37562,\n            \"vaddr\": \"Jennaside\"\n        },\n        {\n            \"id\": 15,\n            \"vno\": 3465,\n            \"vname\": \"John Gregory\",\n            \"vsal\": 13138,\n            \"vaddr\": \"East Melissafurt\"\n        },\n        {\n            \"id\": 26,\n            \"vno\": 3083,\n            \"vname\": \"Ronald Johnson\",\n            \"vsal\": 27174,\n            \"vaddr\": \"North Kelly\"\n        },\n        {\n            \"id\": 38,\n            \"vno\": 9494,\n            \"vname\": \"Brenda Johnson\",\n            \"vsal\": 40338,\n            \"vaddr\": \"Lake Adam\"\n        },\n        {\n            \"id\": 41,\n            \"vno\": 4346,\n            \"vname\": \"Joseph Stewart\",\n            \"vsal\": 42527,\n            \"vaddr\": \"Port Williamton\"\n        },\n        {\n            \"id\": 48,\n            \"vno\": 9805,\n            \"vname\": \"Joshua Palmer\",\n            \"vsal\": 16645,\n            \"vaddr\": \"Aaronmouth\"\n        },\n        {\n            \"id\": 60,\n            \"vno\": 2278,\n            \"vname\": \"Jennifer Johnson\",\n            \"vsal\": 32733,\n            \"vaddr\": \"West Sheri\"\n        },\n        {\n            \"id\": 82,\n            \"vno\": 5782,\n            \"vname\": \"Bonnie Jones\",\n            \"vsal\": 12295,\n            \"vaddr\": \"Lake Jeffmouth\"\n        },\n        {\n            \"id\": 91,\n            \"vno\": 4364,\n            \"vname\": \"Jodi Bailey\",\n            \"vsal\": 27278,\n            \"vaddr\": \"West Tammy\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Ordering",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api6/?ordering=vaddr",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api6",
+						""
+					],
+					"query": [
+						{
+							"key": "ordering",
+							"value": "vaddr"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "asending order by vname",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api6/?ordering=vname",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api6",
+								""
+							],
+							"query": [
+								{
+									"key": "ordering",
+									"value": "vname"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 20 May 2024 11:17:32 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "WSGIServer/0.2 CPython/3.12.3"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept, Cookie"
+						},
+						{
+							"key": "Allow",
+							"value": "GET, HEAD, OPTIONS"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "Content-Length",
+							"value": "927"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"count\": 132,\n    \"next\": \"http://127.0.0.1:8000/api6/?ordering=vname&page=2\",\n    \"previous\": null,\n    \"results\": [\n        {\n            \"id\": 33,\n            \"vno\": 4618,\n            \"vname\": \"Aaron Munoz\",\n            \"vsal\": 32987,\n            \"vaddr\": \"West Ruth\"\n        },\n        {\n            \"id\": 121,\n            \"vno\": 2030,\n            \"vname\": \"Amber Brown\",\n            \"vsal\": 14778,\n            \"vaddr\": \"Lake Dianashire\"\n        },\n        {\n            \"id\": 13,\n            \"vno\": 2719,\n            \"vname\": \"Andrew Mitchell\",\n            \"vsal\": 10362,\n            \"vaddr\": \"Christinechester\"\n        },\n        {\n            \"id\": 96,\n            \"vno\": 9989,\n            \"vname\": \"Anita George\",\n            \"vsal\": 44033,\n            \"vaddr\": \"Underwoodport\"\n        },\n        {\n            \"id\": 59,\n            \"vno\": 7002,\n            \"vname\": \"Anne Booker\",\n            \"vsal\": 26485,\n            \"vaddr\": \"Hectorchester\"\n        },\n        {\n            \"id\": 11,\n            \"vno\": 5109,\n            \"vname\": \"Arthur Allen\",\n            \"vsal\": 21131,\n            \"vaddr\": \"Jasonstad\"\n        },\n        {\n            \"id\": 119,\n            \"vno\": 1306,\n            \"vname\": \"Ashley Curtis MD\",\n            \"vsal\": 35928,\n            \"vaddr\": \"Mcbridefurt\"\n        },\n        {\n            \"id\": 98,\n            \"vno\": 2064,\n            \"vname\": \"Ashley Wyatt\",\n            \"vsal\": 34204,\n            \"vaddr\": \"Greenhaven\"\n        },\n        {\n            \"id\": 72,\n            \"vno\": 1906,\n            \"vname\": \"Betty Miller\",\n            \"vsal\": 39079,\n            \"vaddr\": \"Robertsside\"\n        },\n        {\n            \"id\": 82,\n            \"vno\": 5782,\n            \"vname\": \"Bonnie Jones\",\n            \"vsal\": 12295,\n            \"vaddr\": \"Lake Jeffmouth\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "desending order by vname",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api6/?ordering=-vname",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api6",
+								""
+							],
+							"query": [
+								{
+									"key": "ordering",
+									"value": "-vname"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 20 May 2024 11:18:21 GMT"
+						},
+						{
+							"key": "Server",
+							"value": "WSGIServer/0.2 CPython/3.12.3"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept, Cookie"
+						},
+						{
+							"key": "Allow",
+							"value": "GET, HEAD, OPTIONS"
+						},
+						{
+							"key": "X-Frame-Options",
+							"value": "DENY"
+						},
+						{
+							"key": "Content-Length",
+							"value": "928"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Referrer-Policy",
+							"value": "same-origin"
+						},
+						{
+							"key": "Cross-Origin-Opener-Policy",
+							"value": "same-origin"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"count\": 132,\n    \"next\": \"http://127.0.0.1:8000/api6/?ordering=-vname&page=2\",\n    \"previous\": null,\n    \"results\": [\n        {\n            \"id\": 34,\n            \"vno\": 9131,\n            \"vname\": \"William Byrd\",\n            \"vsal\": 34305,\n            \"vaddr\": \"New Justinfort\"\n        },\n        {\n            \"id\": 54,\n            \"vno\": 8319,\n            \"vname\": \"Wanda Wang\",\n            \"vsal\": 22622,\n            \"vaddr\": \"East Matthew\"\n        },\n        {\n            \"id\": 124,\n            \"vno\": 3315,\n            \"vname\": \"Walter Garcia\",\n            \"vsal\": 13878,\n            \"vaddr\": \"West Joseville\"\n        },\n        {\n            \"id\": 57,\n            \"vno\": 1015,\n            \"vname\": \"Virginia Barr\",\n            \"vsal\": 13413,\n            \"vaddr\": \"Ryanburgh\"\n        },\n        {\n            \"id\": 64,\n            \"vno\": 9336,\n            \"vname\": \"Vanessa Adams\",\n            \"vsal\": 13842,\n            \"vaddr\": \"Port Kylestad\"\n        },\n        {\n            \"id\": 85,\n            \"vno\": 2854,\n            \"vname\": \"Tyler Jackson\",\n            \"vsal\": 39071,\n            \"vaddr\": \"Petersonmouth\"\n        },\n        {\n            \"id\": 20,\n            \"vno\": 6610,\n            \"vname\": \"Troy Green\",\n            \"vsal\": 18175,\n            \"vaddr\": \"Sanchezville\"\n        },\n        {\n            \"id\": 40,\n            \"vno\": 9702,\n            \"vname\": \"Tristan Guerrero\",\n            \"vsal\": 35853,\n            \"vaddr\": \"Wileyton\"\n        },\n        {\n            \"id\": 86,\n            \"vno\": 3285,\n            \"vname\": \"Timothy Zimmerman\",\n            \"vsal\": 10666,\n            \"vaddr\": \"Lake Jeffrey\"\n        },\n        {\n            \"id\": 125,\n            \"vno\": 7939,\n            \"vname\": \"Timothy Velez\",\n            \"vsal\": 11852,\n            \"vaddr\": \"Chadland\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Searching & Ordering both",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api6/?search=J&ordering=vsal",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api6",
+						""
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": "J"
+						},
+						{
+							"key": "ordering",
+							"value": "vsal"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

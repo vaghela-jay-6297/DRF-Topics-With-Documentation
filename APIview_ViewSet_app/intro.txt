@@ -1,0 +1,386 @@
+DRF provides 2 classes to define business logic for our API Views.
+    1) APIView
+    2) ViewSet
+
+1) APIView:
+ It is the most basic class to build REST APIs. It is similar to Django traditional View class.
+ It is the child class of Django's View class.
+ It allows us to use standard HTTP methods as functions like get(),post(),put() etc
+ Here, we have to write complete code for business logic and hence programmer having complete control on the logic. We can understand flow of 
+execution very clearly.
+ Best suitable for complex operations like working with multiple datasources, calling
+other APIs etc
+ We have to define url mappings manually.
+
+Where APIViews are best suitable?
+1) If we want complete control over the logic
+2) If we want clear execution flow
+3) If we are calling other APIs in the same request
+4) If we want to work with multiple data sources simultaneously
+5) If we want to perform any complex operations etc
+
+How to send Response in APIViews/ViewSets:
+To send response to the partner/client application, DRF provides Response class. It will convert input data to json format automatically.
+
+Note for post request: In post request, partner/client application will send resource data in the form of json. To convert this 
+json data to python native types, serializer is required.
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+2) ViewSets:
+ By using ViewSets, we can provide business logic for our API views.
+ It is alternative to APIView class.
+
+ In the case of APIView, we can use HTTP Methods as functions like get(), post() etc. But
+in ViewSet, We have to use Model class actions/operations for function names.
+     list()  To get all resources/records/objects
+     retrieve()  To get a specific resource
+     create()  To create a new resource
+     update()  To update a resource
+     partial_update()  To perform partial updation of resource.
+     destroy()  To delete a resource.
+
+Mapping:
+    get()  list() and retrieve()
+    post()  create()
+    put()  update()
+    patch()  partial_update()
+    delete()  destroy()
+
+In APIViews, we have to write total logic. But in ViewSets most of the logic will be provided automatically. Hence we can provide more functionality with less code and we
+can develop API very quickly in less time.
+
+When ViewSets are Best Choice:
+1) If we want to develop a simple CRUD interface to our database.
+2) If we want to develop a simple and quick API to manage predefined objects
+3) If we are performing only standard operations with very less or no customization.
+4) If we are not performing any complex operations like calling other APIs,using multiple data sources etc
+
+
+Defining Router for TestViewSet:
+ In APIViews, we have to map views to urls manually. But in ViewSet, we are not required to do explicitly. DRF provides a 'DefaultRouter' class to map ViewSet to the
+urls, which are used by partner application.
+ Routers provide an easy way of automatically determining the URL configurations.
+Routers are required only for views developed by ViewSet.
+
+
+
+- Differences between APIView and ViewSet:::
+            APIView                                                      ViewSet
+---------------------------------------------------------------------------------------------------------------
+1) Present in rest_framework.views Module.          1) Present in rest_framework.viewsets Modules.
+2) Method Names reflect HTTP Methods like           2) Method Names reflect Database Model class actions/operations
+get(),post(),put(),patch(),delete()                 like list(),retrieve(),create(),update(),partial_update() and destroy()  
+3) We have to map views to urls explicitly.         3) We are not required to map views to urls explicitly. DefaultRouter 
+                                                    will takes care url mappings automatically. 
+4) Most of the business logic we have to write      4) Most of the business logic will be generated automatically.
+explicitly.
+5) Length of the code is more                       5) Length of the code is less.
+6) API Development time is more                     6) API Development time is less
+7) Developer has complete control over the logic    7) Developer won't have complete control over the logic.
+8) Clear Execution Flow is possible                 8) Clear Execution Flow is not possible
+9) Best suitable for complex operations             9) Best suitable for developing simple APIs like
+like using multiple data sources simultaneously,       developing CRUD interface for database models.
+calling other APIs etc
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------
+
+*** GenericAPIView ***
+----------------------
+
+Generic classes are sub classes of APIView.
+
+In Django, APIView is a class-based view provided by the Django REST Framework for building API views. 
+It's not a direct subclass of Django's View class; instead, it's a subclass of rest_framework.generic.
+
+GenericAPIView: Provides commonly used behavior for working with generic views. 
+                It's usually subclassed to implement specific views like ListAPIView, RetrieveAPIView, etc.
+
+- ListAPIView: A view for listing a queryset.
+- CreateAPIView: A view for creating a model instance.
+- RetrieveAPIView: A view for retrieving a model instance.
+- UpdateAPIView: A view for updating a model instance.
+- DestroyAPIView: A view for deleting a model instance.
+- ListCreateAPIView: Combines ListAPIView and CreateAPIView in a single view.
+- RetrieveUpdateAPIView: Combines RetrieveAPIView and UpdateAPIView in a single view.
+- RetrieveDestroyAPIView: Combines RetrieveAPIView and DestroyAPIView in a single view.
+- RetrieveUpdateDestroyAPIView: Combines RetrieveAPIView, UpdateAPIView, and DestroyAPIView in a single view.
+- APIView: The base class for all API views.
+
+These subclasses provide different functionalities and are used depending on the requirements of your API endpoints.
+Each subclass has its own specific purpose and can be customized further by overriding methods or attributes.
+
+
+A). ListAPIView: A view for listing queryset.
+Ex: Normal APIview Function:
+    class EmployeeListAPIView(APIView):
+        def get(self,request,format=None):
+            qs=Employee.objects.all()
+            serializer=EmployeeSerializer(qs,many=True)
+            return Response(serializer.data)
+
+If we want to get list of all resources then ListAPIView class is best suitable. This class present in rest_framework.generics module.
+Used for read-only endpoints to represent a collection of model instances.
+Provides a get method handler.
+Extends: GenericAPIView, ListModelMixin
+
+Ex: using ListAPIView class:
+    class StudentAPIView(generics.ListAPIView):
+        queryset = Student.objects.all()
+        serializer_class = StudentSerializer(queryset, many=True)
+
+Note: queryset & serializer_class is built-in/ predefine keywords in django.
+
+##### How to implement Search Operation:
+If we want to implement search operation, we have to override get_queryset() method in our view class.
+Ex: 
+from rest_framework import generics
+class EmployeeAPIView(generics.ListAPIView):
+    # queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    def get_queryset(self):
+        qs=Employee.objects.all()
+        name=self.request.GET.get('ename')
+        if name is not None:
+            qs=qs.filter(ename__icontains=name)
+            return qs
+
+Note: If we override get_queryset() method then we are not required to specify queryset variable.
+
+To list out all employee records the endpoint url is:
+http://127.0.0.1:8000/api2/apiview2/
+To list out all employee records where sname contains Sunny, the endpoint url is:
+http://127.0.0.1:8000/api2/apiview2/?sname=Sunny
+ 
+....................................................................................................
+
+B). CreateAPIView:
+Used for create-only endpoints.
+Provides a post method handler.
+Extends: GenericAPIView, CreateModelMixin
+Ex:
+class EmployeeCreateAPIView(generics.CreateAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+
+url(r'^api/', views.EmployeeCreateAPIView.as_view()),
+
+....................................................................................................
+
+c). RetrieveAPIView:
+Used for read-only endpoints to represent a single model instance.
+Provides a get method handler.
+Extends: GenericAPIView, RetrieveModelMixin
+Ex:
+class EmployeeDetailAPIView(generics.RetrieveAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+
+url(r'^api/(?P<pk>\d+)/$', views.EmployeeDetailAPIView.as_view()),
+
+Note: In the url pattern compulsory we should use 'pk',otherwise we will get the following error.
+
+AssertionError at /api/2/
+Expected view EmployeeDetailAPIView to be called with a URL keyword argument named
+"pk". Fix your URL conf, or set the '.lookup_field' attribute on the view correctly.
+
+If we want to use anyother name instead of 'pk' then we have to use lookup_field
+attribute in the view class.
+
+Ex:
+class EmployeeDetailAPIView(generics.RetrieveAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    lookup_field='id'
+
+url(r'^api/(?P<id>\d+)/$', views.EmployeeDetailAPIView.as_view()),
+
+....................................................................................................
+
+D). UpdateAPIView:
+Used for update-only endpoints for a single model instance.
+Provides put and patch method handlers.
+Extends: GenericAPIView, UpdateModelMixin
+Ex:
+class EmployeeUpdateAPIView(generics.UpdateAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    lookup_field='id'
+
+url(r'^api/(?P<id>\d+)/$', views.EmployeeUpdateAPIView.as_view()),
+
+Note: In the browsable API, for PUT operation we have to provide values for all fields. But for PATCH operation we have to provide only required fields.
+
+....................................................................................................
+
+E). DestroyAPIView:
+Used for delete-only endpoints for a single model instance.
+Provides a delete method handler.
+Extends: GenericAPIView, DestroyModelMixin
+Ex:
+class EmployeeDeleteAPIView(generics.DestroyAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    lookup_field='id'
+
+url(r'^api/(?P<id>\d+)/$', views.EmployeeDeleteAPIView.as_view()),
+
+
+Note:
+ListAPIView -> Specially designed class for List operation
+CreateAPIView -> Specially designed class for Create operation
+RetrieveAPIView -> Specially designed class for Detail operation
+UpdateAPIView -> Specially designed class for Update operation
+DestroyAPIView -> Specially designed class for delete operation
+
+....................................................................................................
+
+F). ListCreateAPIView:
+We can use ListCreateAPIView to develop read-write endpoints to represent a collection of model instances.
+It provides get and post method handlers
+Ex:
+class EmployeeListCreateAPIView(generics.ListCreateAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+
+url(r'^api/', views.EmployeeListCreateAPIView.as_view()),
+
+....................................................................................................
+
+G). RetrieveUpdateAPIView:
+We can use RetrieveUpdateAPIView to develop read and update endpoints to represent a single model instance.
+It provides get, put and patch method handlers. 
+Ex:
+class EmployeeRetrieveUpdateAPIView(generics.RetrieveUpdateAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    lookup_field='id'
+
+url(r'^api/(?P<id>\d+)/$', views.EmployeeRetrieveUpdateAPIView.as_view()),
+
+....................................................................................................
+
+H). RetrieveDestroyAPIView:
+We can use RetrieveDestroyAPIView to develop read and delete endpoints to represent a single model instance.
+It provides get and delete method handlers.
+Ex:
+class EmployeeRetrieveDestroyAPIView(generics.RetrieveDestroyAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    lookup_field='id'
+
+url(r'^api/(?P<id>\d+)/$', views.EmployeeRetrieveDestroyAPIView.as_view()),
+
+....................................................................................................
+
+I). RetrieveUpdateDestroyAPIView:
+We can use RetrieveUpdateDestroyAPIView to develop read-update-delete endpoints to represent a single model instance.
+It provides get, put, patch and delete method handlers.
+Ex:
+class EmployeeRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    lookup_field='id'
+
+url(r'^api/(?P<id>\d+)/$', views.EmployeeRetrieveUpdateDestroyAPIView.as_view()),
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+******** Difference between APIView and GenericView  ********
+A). Purpose:
+    - APIView: This is a base class for creating custom API views in Django REST Framework. It provides a lot of flexibility, 
+        allowing you to define your own HTTP methods and handle requests in a more customized manner.
+    - GenericAPIView: This is a subclass of APIView that provides implementations for common patterns in web development, particularly CRUD operations on models. 
+        It's intended to be subclassed to create views for common actions like listing, retrieving, creating, updating, and deleting objects.
+
+B). Functionality:
+    - APIView: Provides a base for handling incoming HTTP requests. You need to implement methods such as get(), post(), put(), delete(), etc., 
+        based on your specific requirements.
+    - GenericAPIView: Provides implementations for common CRUD operations on models. It includes methods for handling list, retrieve, create, update, and delete operations, 
+        reducing the amount of code you need to write for basic API functionality.
+
+
+****************** when we have to use apiview and when genericview ******************
+Think of APIView and GenericAPIView like building blocks for creating API endpoints in Django.
+- APIView is like a blank sheet of paper. You can draw anything you want on it, but you have to do everything from scratch. 
+  It gives you the most control because you write all the code for handling requests (like GET, POST) yourself.
+
+- GenericAPIView is like a coloring book. It has some outlines already drawn for you, so you don't have to start from scratch. 
+  It provides useful features and shortcuts for common tasks, making it quicker and easier to build your API endpoints.
+
+So, use APIView when you need full control and flexibility. Use GenericAPIView when you want to save time and do things the easier way with built-in helpers.
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------
+
+*** Mixins Class ***
+---------------------
+
+- Mixins are Normal class contains methods only.
+- Mixins are reusable components. DRF provides several mixins to provide basic view behaviour. 
+- Mixin classes provide several action methods like create(), list() etc which are useful while implementing handling methods like get(), post() etc
+- The mixin classes can be imported from rest_framework.mixins.
+
+- In Django REST Framework (DRF), mixins are like reusable building blocks that add specific functionality to your views. 
+Imagine you have different toys with different parts. Mixins are like those parts that you can attach to your toys to give them new abilities, 
+like making them move or light up. For example, a mixin can help a view handle creating new data, updating existing data, or deleting data, 
+without writing all the code from scratch each time.
+
+##### why we use mixins 
+- Mixins in programming, especially in Django, are like adding special abilities to your code without repeating yourself.
+- Imagine you have several toys, and you want them all to have a special feature, like making a sound. Instead of giving each toy its own sound-making 
+part, you create one sound-making feature and attach it to all your toys. Mixins work the same way: they allow you to add common functionalities to 
+different parts of your code easily, making your code simpler and more organized.
+
+The following are various Mixin classes provided by DRF.
+1) ListModelMixin
+2) CreateModelMixin
+3) RetrieveModelMixin
+4) UpdateModelMixin
+5) DestroyModelMixin
+
+1) ListModelMixin:
+- It can be used to implement list operation (get method handler).
+- It provides list() method 
+    list(request,*args,**kwargs)
+
+2) CreateModelMixin:
+- It can be used for implementing create operation. ie for creating and saving new
+- model instance(post method handler).It provides create() method.
+    create(request,*args,**kwargs)
+
+3) RetrieveModelMixin:
+- It can be used to implement retrieve/detail operation(get method handler). It provides retrieve() method
+    retrieve(request,*args,**kwargs)
+
+4) UpdateModelMixin:
+- It can be used to implement update operation(both put and patch)
+- It provides update() method to implement put method handler.
+    update(request,*args,**kwargs)
+- It provides partial_update() method to implement patch method handler
+    partial_update(request,*args,**kwargs)
+
+5) DestroyModelMixin:
+- It can be used to implement destroy operation(delete method handler)
+- It provide destroy() method
+    destroy(request,*args,**kwargs)
+
+Note: when you use mixin class at lease one APIView is required to take.
+Note: you Dont have to use mixins because GenericAPIView is already provide list, retrieve, update, destroy etc. 
+      - we can direct use all genericapiview.
+      Ex: CreateModelMixin -> CreateAPIView, ListModelMixin -> ListAPIView
+          UpdateModelMixin -> UpdateAPIView, DestroyModelMixin -> DestroyAPIView, RetrieveModelMixin -> RetrieveAPIView
+          RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin -> RetrieveUpdateDestroyAPIView
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+

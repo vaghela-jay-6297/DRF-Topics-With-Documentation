@@ -1,0 +1,74 @@
+what is manager:
+*****************
+- A manager is the interface through which database query operations are provided to django models. at least one manager exists 
+for every model in a django application.
+- Model manager is used to interact with database.
+- By default Django adds a manager with the name objects to every django model class.
+- package: django.db.models.manager.Manager
+
+Change Manager Name:
+--------------------
+- By default Django adds a manager with the name objects to every django model class. However if you want to use objects as 
+a field name, or if you want to use a name other than objects for the manager, you can rename it on a pre-model basis.
+
+- to rename the manager for a given class, define a class attribute of type models.Manager() on the model.
+Ex: models.py   
+    from django.db import Models
+    class Student(models.Model):
+        name= models.CharField(max_length=40)
+        roll = models.IntegerField()  
+
+        # objects = models.Manager    # default manager (Student.objects.all())
+        student = models.Manager    # now objects replace with student. (Student.student.all())
+
+
+Custom Model Manager:
+*********************
+- You can use a custom manager in a particular model by extending the base manager class and instantiating your custom manager in your model.
+- There are two reasons you might want to customize a Manager (none of them are exclusive):
+    - to modify the initial QuerySet the manager return
+    - to add extra manager methods
+
+
+modify the initial QuerySet:
+----------------------------
+- A manager's base QuerySet returns all objects in the system. you can override a manager's base queryset by overriding the
+Manager.get_queryset() method. get_queryset() should return a QuerySet with the properties you require.
+- you can Associate more than one manager in one model.
+
+Ex: write model manager (manager.py)
+    class CustomManager(models.Manager):
+        def get_queryset(self):     # overriding Built-in method called when we call all()
+            return super().get_queryset().order_by('name')
+        
+Ex: Associate manager with model    (models.py)
+    class Student(models.Model):
+        objects = models.Manager  # default manager
+        students = CustomManager   # custom manager
+
+Ex: views.py
+    stu_data = Student.objects.all()    # work as per default manager
+    stu_data = Student.students.all()  # work as per custom manager
+
+
+add extra manager methods:
+--------------------------
+- Adding extra manager methods is the preferred way to add "table-level" functionality to your models.
+- here you write your own function in below class.
+
+Ex: write model manager  (manager.py)
+    class CustomManager(models.Manager):
+        def get_stu_roll_range(self, r1, r2):   # create custom/own extra method
+            return super().get_queryset().filter(roll_range=(r1, r2))
+
+Ex: Associate manager with model    (models.py)
+    class Student(models.Model):
+        objects = models.Manager  # default manager
+        students = CustomManager   # custom manager
+
+Ex: views.py
+    stu_data = Student.objects.all()    # work as per default manager
+    stu_data = Student.students.get_stu_roll_range(101, 103)    # call method
+
+
+

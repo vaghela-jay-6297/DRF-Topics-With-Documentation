@@ -1,0 +1,38 @@
+Nested Serializers:
+-------------------
+- Sometimes we can use one serializer inside another serializer to serialize dependent Model fields, such type of serializers 
+are called Nested Serializers.
+- If Model mappings are there (like OneToOne, ManyToOne, ManyToMany) then we should go for Nested Serializers.
+
+- In Django Rest Framework (DRF), nested serializers are used to include related data within a single API response. They allow 
+you to represent complex data relationships, such as foreign key and many-to-many relationships, by embedding one serializer inside another. 
+This approach enhances the readability and usability of the API by providing a structured, hierarchical representation of related objects.
+
+Eg 1: Assume there are two Models named with Author and Book. Book model has ForiegnKey reference to Author. While listing Author 
+information, the corresponding Books information also required to provide. Hence inside AuthorSerializer, we required use BookSerializer. 
+This concept is nothing but Nested Serializers.
+
+    Syntax:
+        class AuthorSerializer(serializers.ModelSerializer):
+            books_by_author = BookSerializer(read_only=True, many=True) # nested serializer
+            class Meta:
+                model = Author
+                fields = "__all__"
+        class BookSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = Book
+                fields = '__all__'
+
+Note: http://127.0.0.1:8000/api7/author , I want all authors information including the book information that's why I'm use nested serializer.
+
+Eg 2: Assume there are two Models named with Musician and Album. Album model has ForiegnKey reference to Musician. While listing 
+Musician information, the corresponding Albums information also required to provide. Hence inside MusicianSerializer, we required 
+use AlbumSerializer. This concept is nothing but Nested Serializers.
+
+    Syntax:
+        class MusicianSerializer(serializers.ModelSerializer):
+            albums_by_musician = AlbumSerializer(read_only=True,many=True)
+            ....
+
+
+

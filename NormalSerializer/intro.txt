@@ -1,0 +1,272 @@
+Serializers:
+DRF Serializers are responsible for the following activities
+1) Serialization
+2) Deserialization
+3) Validation
+
+Note: DRF Serializers will work very similar to Django Forms and ModelForm classes.
+
+1) Serialization:
+- The process of converting complex objects like Model objects and QuerySets to Python
+native data types like dictionary etc,is called Serialization.
+- The main advantage of converting to python native data types is we can
+convert(render) very easily to JSON,XML etc
+
+Serialization process::: python complex data types(QS) -> python native data type -> Json
+
+Defining Serializer Class:
+models.py
+1) from django.db import models
+2) class Employee(models.Model):
+3) eno=models.IntegerField()
+4) ename=models.CharField(max_length=64)
+5) esal=models.FloatField()
+6) eaddr=models.CharField(max_length=64)
+
+serializers.py
+1) from rest_framework import serializers
+2) class EmployeeSerializer(serializers.Serializer):
+3) eno=serializers.IntegerField()
+4) ename=serializers.CharField(max_length=64)
+5) esal=serializers.FloatField()
+6) eaddr=serializers.CharField(max_length=64)
+
+Converting Employee Object to Python Native Data Type By using
+EmployeeSerializer (Serialization Process):
+>>> from testapp.models import Employee
+>>> from testapp.serializers import EmployeeSerializer
+>>> emp=Employee(eno=100,ename='Durga',esal=1000,eaddr='Hyd')
+>>> eserializer=EmployeeSerializer(emp)
+>>> eserializer.data
+{'eno': 100, 'ename': 'Durga', 'esal': 1000.0, 'eaddr': 'Hyd'}
+Just we converted Employee object to python native data type(dict)
+
+Converting Python native data type to JSON:
+>>> from rest_framework.renderers import JSONRenderer
+>>> json_data=JSONRenderer().render(eserializer.data)
+>>> json_data
+b'{"eno":100,"ename":"Durga","esal":1000.0,"eaddr":"Hyd"}'
+
+How to perform serialization for QuerySet:
+>>> qs=Employee.objects.all()
+>>> qs
+<QuerySet [<Employee: Employee object>, <Employee: Employee object>]>
+>>> eserializer=EmployeeSerializer(qs,many=True)
+>>> eserializer.data
+[OrderedDict([('eno', 100), ('ename', 'Durga'), ('esal', 1000.0), ('eaddr', 'Hyderabad')]),
+OrderedDict([('eno', 200), ('ename', 'Bunny'), ('esal', 2000.0), ('eaddr', 'Mumbai')])]
+>>> json_data=JSONRenderer().render(eserializer.data)
+>>> json_data
+b'[{"eno":100,"ename":"Durga","esal":1000.0,"eaddr":"Hyderabad"},{"eno":200,"ename
+":"Bunny","esal":2000.0,"ead
+dr":"Mumbai"}]'
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+2) Deserialization:
+ The process of converting python native data types complex data types like Model
+objects is called deserialization.
+ First we have to convert json_data to python native data type.
+
+De-Serialization process::: Json data -> python native data type -> python complex data types(QS) 
+
+1) import io
+2) from rest_framework.parsers import JSONParser
+3) stream=io.BytesIO(json_data)
+4) data=JSONParser().parse(stream)
+
+Now, we have to convert python native data type to database supported complex type
+(deserialization)
+1) serializer=EmployeeSerializer(data=data)
+2) serializer.is_valid()
+3) serializer.validated_data
+
+
+Use Case of Serialization and Deserialization:
+ If the partner application sends get request,then we have to convert database specific
+model objects or querysets to json form and we have to send that json data to the
+partner application. For this serialization is required.
+ If the partner application sends either post or put request with some json data, then
+our django application has to convert that json data into database specific form. For
+this deserialization is required.
+
+
+Notes:
+1) To send post request csrf verification should be disabled
+2) Before calling save() method,compulsory we should call is_valid() method, otherwise
+we will get error.
+AssertionError: You must call .is_valid() before calling .save()
+3) After validation we can print validated data by using
+serializer.validated_data variable
+print(serializer.validated_data)
+
+Note: 
+1) By default for update operation, we have to provide all fields. If any field is
+missing, then we will get ValidationError.
+2) If we don't want to provide all fields, then we have to use 'partial' attribute.
+    serializer = EmployeeSerializer(emp,data=data)
+    In this case we have to provide all fields for updation
+
+    serializer = EmployeeSerializer(emp,data=data,partial=True)
+    In this case we have to provide only required fields but not all.
+
+Note: By using serializers, we can perform get(),post() and put() operations. There is role
+of serializers in delete operation.
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+3) Validations by using Serializers:
+
+We can implement validations by using the following 3 ways
+    1) Field Level Validations
+    2) Object Level Validations
+    3) By using validators
+
+1) Field Level Validations
+Syntax: validate_fieldname(self,value):
+
+Eg: To check esal should be minimum 5000
+1) class EmployeeSerializer(serializers.Serializer):
+2) ....
+3)
+4) def validate_esal(self,value):
+5) if value<5000:
+6) raise serializers.ValidationError('Employee Salaray Should be Minimum 5000')
+7) return value
+
+2) Object Level Validations:
+If we want to perform validations for multiple fields simultaneously then we should go
+for object level validations.
+
+Eg: If ename is 'Sunny' then salary should be minimum 60000
+1) def validate(self,data):
+2) ename=data.get('ename')
+3) esal=data.get('esal')
+4) if ename.lower()=='sunny':
+5) if esal<60000:
+6) raise serializers.ValidationError('Sunny Salary should be minimum 60K')
+7) return data
+
+Use Cases:
+1) First entered pwd and re-entered pwd must be same.
+2) First entered account number and re-entered account number must be same
+These validations we can implement at object level.
+
+3) Validations by using Validator Field:
+    1) def multiples_of_1000(value):
+    2) if value % 1000 != 0:
+        3) raise serializers.ValidationError('Salary should be multiples of 1000s')
+
+    5) class EmployeeSerializer(serializers.Serializer):
+    6) ...
+    7) esal=serializers.FloatField(validators=[multiples_of_1000,])
+    8) ..
+
+Note: If we implement all 3 types of validations then the order of priority is
+1) validations by using validator
+2) validations at field level
+3) validations at object level  
+
+
+BaseSerializer class that can be used to easily support alternative serialization and deserialization styles:
+--------------------------------------------------------------------------------------------------------------
+This class implements the same basic API as the Serializer class:
+    - .data - Returns the outgoing primitive representation.
+        EX:
+            serializer = MyModelSerializer(instance)
+            serialized_data = serializer.data
+
+    - .is_valid() - Deserializes and validates incoming data.
+        EX:
+            serializer = MyModelSerializer(data=request.data)
+            if serializer.is_valid():
+                # data is valid
+
+    - .validated_data - Returns the validated incoming data.
+        Ex:
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data['user']
+
+    - .errors - Returns any errors during validation.
+        EX:
+            serializer = MyModelSerializer(data=request.data)
+            if not serializer.is_valid():
+                errors = serializer.errors
+
+    - .save() - Persists the validated data into an object instance.
+        EX:
+            serializer = MyModelSerializer(data=request.data)
+            if serializer.is_valid():
+                instance = serializer.save()
+
+Methods of serializer class:
+----------------------------
+1. save():
+    - This method is used to save the state of the serializer. It will call either create() or update() based on
+    whether an instance is being created or updated.
+    EX:
+        def save(self, **kwargs):
+            user = self.context['request'].user
+            user.set_password(self.validated_data['new_password'])
+            user.save()
+            return user
+
+2. create():
+    - This method is responsible for creating a new instance of the model using the data provided in the serializer.
+    - It typically performs the following steps:
+        - Validates the data using the serializer's validation logic.
+        - Creates a new instance of the model.
+        - Assigns the validated data to the model instance's fields.
+        - Saves the new model instance to the database.
+        - Returns the newly created model instance.
+    EX:
+        def create(self, validated_data):
+            return MyModel.objects.create(**validated_data)
+
+3. update():
+    - This method is responsible for updating an existing instance of the model using the data provided in the serializer.
+    - It typically performs the following steps:
+        - Validates the data using the serializer's validation logic.
+        - Retrieves the existing model instance to be updated.
+        - Assigns the validated data to the existing model instance's fields.
+        - Saves the updated model instance to the database.
+        - Returns the updated model instance.
+    EX:
+        def update(self, instance, validated_data):
+            instance.field1 = validated_data.get('field1', instance.field1)
+            instance.save()
+            return instance
+
+4. validate():
+    - This method is used for custom validation logic within the serializer.
+    - It receives the data to be serialized and can raise a serializers.ValidationError if the data is invalid.
+    - You can use this method to perform checks like:
+        - Ensuring required fields are present.
+        - Validating data formats (e.g., email addresses, URLs)
+        - Enforcing field value constraints (e.g., minimum/maximum lengths).
+    EX:
+        def validate(self, attrs):
+            if attrs['field'] < 0:
+                raise serializers.ValidationError("Field cannot be negative")
+            return attrs
+
+5. to_representation():
+    - to_representation() allows us to change the serialization output
+    - This method converts the model instance or dictionary-like data into the desired external representation (usually JSON by default).
+    - It iterates over the serializer fields and uses their to_representation() methods to generate the output data.
+    - This allows for custom logic on how data is represented in the serialized output.
+    EX:
+        def to_representation(self, instance):
+            ret = super().to_representation(instance)
+            ret['custom_field'] = 'custom value'
+            return ret
+
+6. to_internal_value():
+    - to_internal_value() allows us to change the deserialization output
+    Ex:
+        def to_internal_value(self, data):
+            validated_data = super().to_internal_value(data)
+            # additional processing
+            return validated_data
+

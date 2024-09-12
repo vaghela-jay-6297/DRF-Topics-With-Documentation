@@ -1,0 +1,132 @@
+- In Django, signals are a way for different parts of your application to communicate with each other. They allow specific 
+events (like creating a new user) to trigger automatic actions (like creating a user profile). This helps keep your code modular 
+and clean by decoupling event handling from the main logic.
+
+- Django provides several built-in signal methods that you can use to handle various events in your application. 
+Here are the main types of signals:
+
+1) Model Signals:
+    - pre_save: Sent before a model's save() method is called.
+    - post_save: Sent after a model's save() method is called.
+    - pre_delete: Sent before a model's delete() method is called.
+    - post_delete: Sent after a model's delete() method is called.
+    - m2m_changed: Sent when a ManyToManyField on a model is changed.
+    - pre_init: Sent before a model's __init__ method is called.
+    - post_init: Sent after a model's __init__ method is called.
+
+2) Management Signals:
+    - pre_migrate: Sent before the migrate command is executed.
+    - post_migrate: Sent after the migrate command is executed.
+
+3) Request/Response Signals:
+    - request_started: Sent when Django starts processing an HTTP request.
+    - request_finished: Sent when Django finishes processing an HTTP request.
+    - got_request_exception: Sent when Django encounters an exception while processing an HTTP request.
+
+4) Database Connection Signals:
+    - connection_created: Sent when a new database connection is created.
+
+Ex: Using post_save Signal for a Model
+    from django.db.models.signals import post_save
+    from django.dispatch import receiver
+    from django.contrib.auth.models import User
+    from .models import Profile
+
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            Profile.objects.create(user=instance)
+
+    @receiver(post_save, sender=User)
+    def save_user_profile(sender, instance, **kwargs):
+        instance.profile.save()
+
+Ex: Using pre_delete Signal
+    from django.db.models.signals import pre_delete
+    from django.dispatch import receiver
+    from .models import MyModel
+
+    @receiver(pre_delete, sender=MyModel)
+    def pre_delete_handler(sender, instance, **kwargs):
+        print(f"About to delete: {instance}")
+
+Complete Example:
+*****************
+
+Ex: Define Models (models.py)
+    from django.db import models
+    from django.contrib.auth.models import User
+
+    class Profile(models.Model):
+        user = models.OneToOneField(User, on_delete=models.CASCADE)
+        bio = models.TextField(blank=True)
+
+        def __str__(self):
+            return self.user.username
+
+Ex: Create and Connect Signals (signals.py)
+    from django.db.models.signals import post_save
+    from django.dispatch import receiver
+    from django.contrib.auth.models import User
+    from .models import Profile
+
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            Profile.objects.create(user=instance)
+
+    @receiver(post_save, sender=User)
+    def save_user_profile(sender, instance, **kwargs):
+        instance.profile.save()
+
+Ex: Register Signals (apps.py)
+    from django.apps import AppConfig
+
+    class MyappConfig(AppConfig):
+        name = 'myapp'
+
+        def ready(self):
+            import myapp.signals
+
+
+Also, ensure the app configuration is loaded by updating the __init__.py file.
+    default_app_config = 'myapp.apps.MyappConfig'
+
+Ex: Update Settings (settings.py)
+    INSTALLED_APPS = [
+        ...
+        'myapp',
+    ]
+
+Test the Signals:(Ternimal)
+---------------------------
+# Open Django shell
+python manage.py shell
+
+# In the shell
+from django.contrib.auth.models import User
+from myapp.models import Profile
+
+# Create a new user
+user = User.objects.create_user(username='john', password='password123')
+
+# Check if the profile is created
+print(Profile.objects.get(user=user))
+
+Conclusion:
+------------
+- In this example, we set up Django signals to automatically create and save a profile whenever a new user is created. This keeps the 
+user profile creation logic decoupled from the user creation logic, making the code cleaner and more modular.
+
+
+Why we use siganals/Advantages of signals:
+------------------------------------------
+Certainly! Here are the key reasons why we use signals in Django:
+
+1. Decoupling: Signals help decouple different parts of the application, allowing them to communicate without being 
+tightly interconnected.
+
+2. Modularity: They promote modular code by allowing separate components to react to specific events or actions independently.
+
+3. Extensibility: Signals make it easier to extend and customize the behavior of Django's built-in functionality or third-party 
+apps without modifying their code directly.

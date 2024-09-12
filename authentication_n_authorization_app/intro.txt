@@ -1,0 +1,742 @@
+Authentication and Authorization:
+-----------------------------------
+
+The APIs, which are developed up to this can be accessed by every one.
+By using ENDPOINT, any one can create a new resource,can modify and delete any
+existing resource. It causes security problems. To provide Security for our API, we should
+go for Authentication and Authorization.
+
+
+Authentication:
+---------------
+---------------
+The process of validating user is called authentication. Most of the times we can perform
+authentication by using username and password combination or by using tokens etc
+
+DRF provides several inbuilt authentication mechanisms
+1) Basic Authentication
+    - transmits user credentials (username and password) encoded in base64 with each request.
+    - Simple but not secure unless used with HTTPS.
+
+2) Session Authentication
+    - Default authentication method in Django.
+    - Uses sessions and cookies to track user state between requests.
+    - Suitable for traditional web applications.
+
+3) Token Authentication
+    - Often used for API authentication.
+    - Each user is associated with a unique token, which is used to authenticate API requests.
+    - Commonly implemented using Django REST framework.
+
+4) JWT(Json Web Token) Authentication
+    - Tokens are issued and signed, often with a secret key or RSA private key.
+    - The token contains encoded user information and can be used for stateless authentication.
+    - Can be implemented using Django REST framework with packages like djangorestframework-jwt.
+
+5) Digest Authentication
+    - More secure than Basic Authentication as it hashes credentials before sending.
+    - Not commonly used due to complexity and better alternatives.
+
+6) OAuth1 and OAuth2 Authentication
+    - OAuth1: An older version of the OAuth standard.
+    - OAuth2: A widely adopted standard for token-based authentication.
+    - Allows third-party applications to access user data without exposing credentials.
+    - Django packages like django-oauth-toolkit can be used to implement OAuth2.
+
+7) Remote User Authentication
+    - Integrates with external authentication systems.
+    - Uses headers set by a web server or a proxy to authenticate users.
+    - Requires enabling RemoteUserMiddleware and setting up appropriate server configurations.
+
+8) Custom Authentication
+    - Django allows creating custom authentication backends.
+    - Useful for integrating with custom or legacy authentication systems.
+
+Note: By using DRF, we can implement our own custom authentication mechanism also
+
+
+Basic Authentication:
+---------------------
+- It is very easy to setup.
+- But it is not recommended for production and we can use this Basic Authentication just for testing purpose.
+- With every request we have to send username and password in base 64 encoded format
+- with Authorization Header.
+
+- How to encode username and password:
+    website to encode username & password: http://www.utilities-online.info/base64/#.XFGE8lUzbIU
+- We have to provide username and password in the following format for encoding <username>:<password>
+Eg: durga:durga123
+Encoded string is : ZHVyZ2E6ZHVyZ2ExMjM=
+
+Ex: views.py
+from rest_framework.authentication import BasicAuthentication
+class EmployeeCRUDCBV(ModelViewSet):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    authentication_classes=[BasicAuthentication,]
+    permission_classes=[IsAuthenticated,]
+
+- How to send request from postman:
+    GET http://localhost:8000/api/
+        Headers Section:
+            Key: Authorization value: Basic ZHVyZ2E6ZHVyZ2ExMjM=
+    
+Note: We can do encoding of username and password in postman tool itself and we are not required to use any third party websites.
+    GET http://localhost:8000/api/
+        Authorization Section:
+            Type: Basic Auth (select from dropdown list)
+                Username: durga
+                Password: durga123
+
+- Limitation of Basic Authentication:
+1) Here, with every request we have to send username and password in base-64
+encoding, which can be easily decoded and hence it causes security problems.
+2) 2. We cannot customize look and feel of login form
+Because of these reasons, this type of authentication is not recommended to use.
+
+
+Session Authentication:
+----------------------
+- Session Based authentication is the traditional authentication mechanism,what ever we used in django
+- Session authentication is implemented by the following class rest_framework.authentication.SessionAuthentication
+Internally authentication will be performed by Django inbuilt auth application.
+
+Ex. models.py
+from django.db import models
+class Employee(models.Model):
+    eno=models.IntegerField()
+    ename=models.CharField(max_length=64)
+    esal=models.FloatField()
+    eaddr=models.CharField(max_length=64)
+
+Ex. admin.py
+from django.contrib import admin
+from testapp.models import Employee
+class EmployeeAdmin(admin.ModelAdmin):
+    list_display=['id','eno','ename','esal','eaddr']
+admin.site.register(Employee,EmployeeAdmin)
+
+Ex. serializers.py
+from testapp.models import Employee
+from rest_framework import serializers
+class EmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Employee
+        fields='__all__'
+
+Ex. views.py
+from testapp.models import Employee
+from testapp.serializers import EmployeeSerializer
+from rest_framework import viewsets
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+class EmployeeCRUDCBV(viewsets.ModelViewSet):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    authentication_classes=[SessionAuthentication,]
+    permission_classes=[IsAuthenticated,]
+
+Ex. projectname/templates/registration/login.html    (template)
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        <h1>Login to access API</h1><hr>
+        <form method="post">
+            {%csrf_token%}
+            {{form.as_p}}
+            <button type="submit" >Login</button>
+        </form>
+    </body>
+</html>
+
+Ex. urls.py
+from django.conf.urls import url,include
+from django.contrib import admin
+from testapp import views
+from rest_framework import routers
+router=routers.DefaultRouter()
+router.register('api',views.EmployeeCRUDCBV)
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'', include(router.urls)),
+    url(r'accounts/', include('django.contrib.auth.urls')),
+]
+
+Ex. settings.py
+INSTALLED_APPS = [
+    ....,
+    'rest_framework',
+    'testapp'
+]
+TEMPLATE_DIR=os.path.join(BASE_DIR,'templates')
+...
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [TEMPLATE_DIR],
+        ...
+    },
+]
+LOGIN_REDIRECT_URL='/api/'
+
+
+- How to send Request for Login:
+    http://127.0.0.1:8000/accounts/login/
+- The request will goes to auth application and it will display
+- projectname/templates/registraion/login.html file.
+- If credentials are valid then the request will goes to api,otherwise display login form again.
+
+
+- How to Logout from the Session:
+    http://127.0.0.1:8000/accounts/logout/
+- Auth application is responsible to provide login form,to perform authentication and to perform logout.
+
+
+
+Token Authentication:
+--------------------
+- Token authentication is like having a special key. When you log in, you get a key (token). You use this key to unlock the door
+ (access the API) every time, so you don't need to give your username and password each time.
+- Every request will be authenticated by using Token, which is nothing but Token Authentication.
+- TokenAuthentication is best suitable for native desktop clients and mobile clients.
+- To implement TokenAuthentication, We have to use 3rd party application 'rest_framework.authtoken',which is responsible to 
+generate and validate required tokens and also manage token. This application is the part of DRF(3rd party app).
+
+Steps to implement TokenAuthentication:
+1) We have to include authtoken application in INSTALLED_APPS list inside settings.py file.
+    Ex: settings.py
+    INSTALLED_APPS = [
+        ....
+        'rest_framework',
+        'rest_framework.authtoken',
+        'testapp'
+    ]
+2) Perform migrations so that the required tables of authtoken application will be created in the database.
+- The table name is Tokens.
+3) We can generate Tokens in the backend from admin interface by selecting required user.
+4) User also can send a request to authtoken application to generate token explicitly. For this auth application url-pattern we have 
+to configure in urls.py file.
+    Ex: urls.py
+    from rest_framework.authtoken import views
+    urlpatterns = [
+        .....
+        url(r'^get-api-token/', views.obtain_auth_token,name='get-api-token'),
+    ]
+- We can send request to this authtoken application to get token as follows
+- http POST http://127.0.0.1:8000/api4/get-api-token/    With passing this parameter in body: username="sunny" password="durga123"
+Note: From the postman also,we can send the request. But username and password we have to provide in Body section.
+
+=> authtoken application will validate this username and password.After valiation, it willcheck is any token already generated for 
+this user or not. If it is already generated then return existing token from Tokens table.
+=> If it is not yet generated, then authtoken application will generate Token and save in Tokens table and then send that token to the client.
+
+Enabling Authentication and Authorization (Permissions) for View Class:
+- Upto this just we tested authtoken application to generate and store Tokens.
+- We have to enable authentication and authorization for our view classes either locally OR globally.
+
+Enabling Locally:
+***************
+- Our application may contain several view classes. If we want to enable authentication and authorization for a particular view 
+class then we have to use this local approach.
+Ex: views.py
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+class EmployeeCRUDCBV(ModelViewSet):
+    ...
+    authentication_classes=[TokenAuthentication,]   # tuple & list both are working
+    permission_classes=[IsAuthenticated,]
+
+Note: Now,if we want to access ENDPOINT compulsory we should send Token, otherwise we will get 401 Unauthorized error response.
+
+Question: if we have 10 class based view with 10 endpoint.Now add token based authentication on all classes so what we have to do?
+Ans: first idea is we have to create mixins and add authentication_classes and authentication_classes in mixin then extend into
+     all 10 classes.
+    - second idea is we are define that authentication & permission globally.
+
+Enabling Globally:
+*****************
+- If we want to enable authentication and authorization for all view classes, we have to use this approach.
+- We have to add the following lines inside settings.py file.
+Ex:
+REST_FRAMEWORK={
+    'DEFAULT_AUTHENTICATION_CLASSES':('rest_framework.authentication.TokenAuthentication',),
+    'DEFAULT_PERMISSION_CLASSES':('rest_framework.permissions.IsAuthenticated',)
+}
+
+Question: What is use of 'AllowAny' Permission Class?
+- AllowAny is the default value for the permission class.
+- If we configure permission classes globally then applicable for all view classes. If we don't want authorization for a particular
+class then we should use this 'AllowAny' permission Class.
+Ex: views.py
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import AllowAny
+class EmployeeCRUDCBV(ModelViewSet):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    authentication_classes=[TokenAuthentication,]
+    permission_classes=[AllowAny,]
+- To access this end point now authentication and authorization is not required. Any one can access.
+
+
+Limitation of Token Authentication:
+***********************************
+In TokenAuthentication, each request requires a database lookup to validate the token and identify the user, which can hurt performance 
+and scalability. JWT Authentication solves this by embedding user information directly in the token, eliminating the need for database 
+interaction on each request. This makes JWT Authentication more efficient and scalable, and it's commonly used in real-world applications 
+for this reason.
+
+
+
+JWT(Json Web Token) Authentication:
+----------------------------------
+- This authentication is not inbuilt support of DRF. We have to install seperately. There are several third party packages are 
+available to implement JWT Authentication for DRF like:
+    - djangorestframework-jwt   # not stabale version (not working now)
+    - djangorestframework-simplejwt
+        etc
+
+How JWT Works?
+- The JWT is just an authorization token that should be included in every request.
+- This authentication associated with the following token management terminology.
+    1) access token
+    2) refresh token
+    3) verify token
+
+1) Access Token:
+- This token can used to access our end point. The default expiration time is 5 minutes. Ofcourse, it is customizable.
+- We can generate access token by using the following configurations in urls.py
+Ex: urls.py 
+    from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+    urlpatterns = [
+        ...
+        path('auth-jwt/', TokenObtainPairView.as_view()),
+    ]
+- Purpose: Used to access protected resources or perform authenticated actions.
+- Duration: Short-lived (typically expires quickly, e.g., in 15 minutes to an hour).
+- Example: When you log in, you receive an access token which you include in your API requests to prove you're authenticated.
+- Usage: Sent with each request to the server to verify your identity and permissions.
+
+postmen test:
+    post: http://127.0.0.1:8000/api4/auth-jwt/     
+        Body section:
+            Key: username value:durga
+            Key: password value:durga123
+
+2) Refresh Token:
+- Non-expired tokens can be "refreshed" to obtain a brand new token with renewed expiration time. For this compulsory we should 
+set JWT_ALLOW_REFRESH is True.
+- The expiration time for refresh token is 7 days. Ofcourse, it is customizable.
+- Once refresh token expires then we have to provide our username and password to generate.
+- To perform refresh, the following configurations in urls.py required.
+Ex: urls.py
+    from rest_framework_simplejwt.views import TokenRefreshView
+    urlpatterns = [
+        ...
+        url(r'api-token-refresh/', TokenRefreshView.as_view()),
+    ]
+- Note: Refresh should be done before expiring the access token. Once access token we
+cannot perform refresh.
+- Purpose: Used to obtain a new access token without re-authenticating(login).
+- Duration: Long-lived (lasts much longer than an access token, e.g., several days or weeks).
+- Example: When your access token expires, you can use the refresh token to get a new access token.
+- Usage: Sent to the server when the access token expires to receive a new access token, keeping the user logged in 
+without needing to re-enter credentials.
+
+postmen test:
+    post: http://127.0.0.1:8000/api4/auth-jwt-refresh/
+        Headers section:
+            Key: Content-Type value: application/json
+        Body Section:
+            KEY: token,
+            value:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImR1cmdhIiwiZXhwIjoxNTQ4NjczNDgzLCJlbWFpbCI6
+                    IiIsIm9yaWdfaWF0IjoxNTQ4NjczMTgzfQ.tdC5css67Ix8v4Tci4q5YjhobQoLnaSqOOh6wfl2qpk (existing access token)
+
+
+3) Verify Token:
+- We can verify whether the token is expired or not by using the following url configurations in urls.py.
+Ex: urls.py
+    from rest_framework_simplejwt.views import TokenVerifyView
+    urlpatterns = [
+        ...
+        url(r'  api-token-verify/', TokenVerifyView.as_view()),
+    ]
+- Passing a token to the verification endpoint will return a 200 response and the token if it is valid. Otherwise, it will return 
+  a 400 Bad Request as well as an error identifying why the token was invalid.
+- Purpose: Used to check if a given token (usually the access token) is still valid.
+- Example: The server can verify the token's integrity and validity, ensuring it hasn't been tampered with or expired.
+- Usage: The server decodes and checks the token to make sure it's legitimate and hasn't been altered.
+
+postmen test:
+    post: http://127.0.0.1:8000/api4/auth-jwt-verify/
+        Headers section:
+            Key: Content-Type value: application/json
+        Body Section:
+            KEY: token,
+            value:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImR1cmdhIiwiZXhwIjoxNTQ4NjczNDgzLCJlbWFpbCI6
+                    IiIsIm9yaWdfaWF0IjoxNTQ4NjczMTgzfQ.tdC5css67Ix8v4Tci4q5YjhobQoLnaSqOOh6wfl2qpk (Verify this token)  
+ 
+
+
+The 3 Parts of JWT Token:
+************************
+In JWT Authentication the token is composed by three parts
+1) header
+2) payload
+3) signature
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.
+eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImR1cmdhIiwiZXhwIjoxNTQ4Njc0NTY1LCJlbWFpbCI6IiIsIm9yaWdfaWF0IjoxNTQ4Njc0MjY1fQ.
+_Sx2JJ3FGwV8Xt3Cj-qmEB4rbE0Z-iq6CpSWQVzRwwM
+
+
+JWT Additional Settings apply in settings.py file:
+*************************************************
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "UPDATE_LAST_LOGIN": False,
+
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": settings.SECRET_KEY,
+    "VERIFYING_KEY": "",
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JSON_ENCODER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+
+    "JTI_CLAIM": "jti",
+
+    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+    "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+    "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+}
+
+
+Custom Authentication:
+----------------------
+Based on our requirement, we can implement our own authentication.
+Process:
+1) We have to write our Custom Authentication class by extending from
+BaseAuthentication.
+2) We have to override authenticate() method.
+3) Returns a tuple of (user,None) for successful authentication
+4) Raise AuthenticationFailed exception for failed authentication.
+
+Ex1: authentications.py
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.models import User
+class CustomAuthentication(BaseAuthentication):
+    def authenticate(self,request):
+        username=request.GET.get('username')
+        if username is None:
+            return None
+        try:
+            user=User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise AuthenticationFailed('No such type of user')
+        return (user,None)
+
+Ex1: views.py
+from testapp.authentications import CustomAuthentication
+class EmployeeCRUDCBV(ModelViewSet):
+    queryset=Employee.objects.all()
+    serializer_class=EmployeeSerializer
+    authentication_classes=[CustomAuthentication,]
+    permission_classes=[IsAuthenticated,]
+
+
+Ex2: Requirements:
+1) Client required to send secret key and username as query parameters.
+2) Length of key should be 7 characters
+3) The first character should be lower case alphabet symbol which should be last
+character of username
+4) The third character should be 'Z'
+5) The 5 th character should be first character of username
+
+Eg:
+username: admin
+secrete key: n7ZXa98
+
+Ex: autherntications.py
+class CustomAuthentication2(BaseAuthentication):
+    def authenticate(self, request):
+        username = request.GET.get('username')  # get username from query string(url)
+        key = request.GET.get('key')    # get key from query string(url)
+        # check username or key is None than return None.
+        if (username is None) or (key is None):
+            return None
+        
+        # conditions (return response in True/False of below condition)
+        c1 = len(key) == 7  # Length of key should be 7 characters 
+        c2 = key[0] == username[-1].lower() # The first character should be lower case alphabet symbol which should be last character of username
+        c3 = key[2] == 'Z'  # The third character should be 'Z'
+        c4 = key[4] == username[0]  # The 5 th character should be first character of username
+
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            raise AuthenticationFailed("Your provided username is invalid, please provide valid username to access endpoint.")
+        
+        # if user exist
+        if c1 and c2 and c3 and c4: # all condition are True than execute return statement
+            return (user, None)
+        else:   # when condtions are false
+            raise AuthenticationFailed("Your provided secret key is invalid, please provide valid secret key to access endpoint.")
+
+
+
+
+Difference between token authentication  and JWT authentication:
+----------------------------------------------------------------
+Token Authentication:
+*********************
+- How It Works: When a user logs in, they receive a token. For every request, this token is sent to the server, which checks the 
+token against a database to identify the user.
+Ex: - User logs in and gets a token: abcd1234.
+    - For every request, the server looks up abcd1234 in the database to find the user.ß
+Pros: Simple to implement.
+Cons: Each request involves a database lookup, which can slow down performance.
+
+JWT Authentication:
+*******************
+- How It Works: When a user logs in, they receive a JSON Web Token (JWT). This token contains encoded user information. For every 
+request, the server decodes the token to identify the user without needing a database lookup.
+Ex: - User logs in and gets a JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....
+    - For every request, the server decodes the JWT to get user information directly.
+Pros: No database lookup needed for each request, improving performance.
+Cons: Slightly more complex to implement than token authentication.
+
+
+
+
+
+
+
+Authorization:
+--------------
+--------------
+The process of validating access permissions of user is called authorization.
+
+Read Operation: GET, OPTIONS, HEAD => Safe Methods -> because this methods calling yet server side
+Write Operation: POST, PUT, PATCH, DELETE => Unsafe Methods
+
+Note: After authentication we have to perform authorization.
+
+Here are the primary types of authorization in DRF:
+1) Permission Classes
+    - Permissions determine whether a request should be granted or denied access to a given view.
+    - Common permission classes include:
+        A) AllowAny: Grants unrestricted access.
+            - The AllowAny permission class will allow unrestricted access irrespective of whether request is authenticated or not.
+            - This is default value for permission-class. It is very helpful to allow unrestricted access for a particular view class if global settings are enabled.
+
+            Ex:
+            from rest_framework.permissions import AllowAny
+            class PublicView(APIView):
+                permission_classes = [AllowAny]
+
+        B) IsAuthenticated: Grants access only to authenticated users.
+            - The IsAuthenticated permission class will deny permissions to any unauthorized user. ie only authenticated users are allowed to access endpoint.
+            - This permission is suitable, if we want our API to be accessible by only registered users.
+            Note: We can send Token in postman inside Headers Section
+                  Key: Authorization
+                  Value: Token 3639020972202cc1d25114ab4a5f54e6078184a4
+            
+            Ex:
+            from rest_framework.permissions import IsAuthenticated
+            class ProtectedView(APIView):
+                permission_classes = [IsAuthenticated]
+
+        C) IsAdminUser: Grants access only to admin users.
+            - If we use IsAdminUser permission class then only AdminUser is allowed to access.i.e the users where is_staff property is True.
+            - This type of permission is best suitable if we want our API to be accessible by only trusted administrators.
+            - If the user is not admin and if he is trying to access endpoint then we will get 403 status code error response saying:
+                Ex: Error msg
+                {
+                    "detail": "You do not have permission to perform this action."
+                }
+
+            Ex:
+            from rest_framework.permissions import IsAdminUser
+            class AdminView(APIView):
+                permission_classes = [IsAdminUser]
+
+        D) IsAuthenticatedOrReadOnly: Grants read-only access to unauthenticated users, and full access to authenticated users.
+            - perform read operation (safe methods:GET,HEAD,OPTIONS) authentication is not required. But for the remaining operations 
+            (POST,PUT,PATCH,DELETE) authentication must be required.
+            - If any person is allowed to perform read operation and only registered users are allowed to perform write operation 
+            then we should go for this permission class.
+            - Eg: In IRCTC application, to get trains information (read operation) registration is not required. But to book tickets 
+            (write operation) login must be required.
+
+            Ex:
+            from rest_framework.permissions import IsAuthenticatedOrReadOnly
+            class ReadOnlyView(APIView):
+                permission_classes = [IsAuthenticatedOrReadOnly]
+
+        *) Example of Combining Permissions:
+        Permissions can be combined using logical operators to create complex authorization rules:
+        Ex:
+        from rest_framework.permissions import IsAuthenticated, IsAdminUser
+        from rest_framework.decorators import api_view, permission_classes
+
+        @api_view(['GET'])
+        @permission_classes([IsAuthenticated & IsAdminUser])
+        def my_view(request):
+            pass
+
+2) Object-Level Permissions
+    - Object-level permissions allow you to define permissions at the instance level.
+    - Requires implementing custom permission classes or methods.
+    
+    Ex:
+    from rest_framework.permissions import BasePermission
+    class IsOwner(BasePermission):
+        def has_object_permission(self, request, view, obj):
+            return obj.owner == request.user
+
+3) Django Model Permissions
+    - Integrates with Django's built-in django.contrib.auth permissions framework.
+    - Uses standard Django model permissions (add, change, delete).
+    - This is the most powerful permission class. Authorization will be granted if user is authenticated and has the relevant model permissions.
+    - DjangoModelPermissions = Authentication + Model Permissions.
+
+    - If the user is not authenticated(we are not providing token) then we will get 401 Unauthorized error message saying
+        {
+            "detail": "Authentication credentials were not provided."
+        }
+
+    - If we are providing Token (authenticated) but not having model permissions then we can perform only GET operation. But to 
+    perform POST,PUT,PATCH,DELETE compulsory model permissions must be required,otherwise we will get 403 Forbidden error message saying
+        {
+            "detail": "You do not have permission to perform this action."
+        }
+
+    Ex:
+    from rest_framework.permissions import DjangoModelPermissions
+    class MyViewSet(ModelViewSet):
+        permission_classes = [DjangoModelPermissions]
+
+    How to provide Model Permissions:
+    *********************************
+        To perform POST operation the required model permission is 'add'
+        To perform PUT,PATCH operations the required model permission is 'change'
+        To pderform DELETE operation the required model permission is 'delete'
+
+        We have to provide these model permissions in admin interface under User permissions:
+            testapp(Application) | employee(Model) | Can change employee (give permission to user from user model)
+            testapp(Application) | employee(Model) | Can add employee (give permission to user from user model)
+            testapp(Application) | employee(Model) | Can delete employee (give permission to user from user model)
+
+    Note: DjangoModelPermissions class is more powerful and we have complete control on permissions.
+        - superuser can perform all operations without any permissin because superuser does not require modelPermission..
+
+4) DjangoModelPermissionsOrAnonReadOnly
+    - It is exactly same as DjangoModelPermissions class except that it allows unauthenticated users to have read-only access to the API.
+    
+    Ex:
+    from rest_framework.authentication import TokenAuthentication
+    from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly
+    class EmployeeCRUDCBV(ModelViewSet):
+        queryset=Employee.objects.all()
+        serializer_class=EmployeeSerializer
+        authentication_classes=[TokenAuthentication,]
+        permission_classes=[DjangoModelPermissionsOrAnonReadOnly,]
+
+5) DjangoObjectPermissions
+    - Extends DjangoModelPermissions to support object-level permissions.
+    - Requires a third-party package like django-guardian for managing object-level permissions.
+
+    Ex:
+    from rest_framework.permissions import DjangoObjectPermissions
+    class MyViewSet(ModelViewSet):
+        permission_classes = [DjangoObjectPermissions]
+
+6) Custom Permissions
+    - Allows you to create custom permission classes by extending BasePermission.
+    - Useful for complex authorization logic that doesn't fit into the standard classes.
+
+    Ex:
+    from rest_framework.permissions import BasePermission
+    class CustomPermission(BasePermission):
+        def has_permission(self, request, view):
+            # Custom permission logic
+            return request.user and request.user.is_authenticated
+
+    - Based on our programming requirement, we can define our own permission classes also. We have to create child class for 
+    BasePermission class and we have to override has_permission() method.
+
+    Eg 1: Define our own Permission class which allows only SAFE_METHODS (GET,HEAD,OPTIONS). 
+    Note: here post, patch, put, delete methods are not working even also you pass token. because we set read(get) only permission.
+    Ex: permissions.py
+    from rest_framework.permissions import BasePermission,SAFE_METHODS
+    class IsReadOnly(BasePermission):
+        def has_permission(self,request,view):
+            if request.method in SAFE_METHODS:
+                return True
+            else:
+                return False
+
+    Ex: views.py
+    from rest_framework.viewsets import ModelViewSet
+    from testapp.models import Employee
+    from testapp.serializers import EmployeeSerializer
+    from rest_framework.authentication import TokenAuthentication
+    from testapp.permissions import IsReadOnly
+    class EmployeeCRUDCBV(ModelViewSet):
+        queryset=Employee.objects.all()
+        serializer_class=EmployeeSerializer
+        authentication_classes=[TokenAuthentication,]
+        permission_classes=[IsReadOnly,]
+        
+    Eg 2: Defining our own permission class which allows only GET and PATCH methods.
+    Ex: permission.py
+    from rest_framework.permissions import BasePermission
+    class IsGetOrPatch(BasePermission):
+    def has_permission(self, request, view):
+        allowed_methods = ['GET', 'PATCH']
+        if request.method in allowed_methods:
+            return True
+        else:
+            return False
+
+    Eg 3: Define our own permission class with the following requirement:
+        - If the name is sunny then allow all methods
+        - If the name is not sunny and the name contains even number of characters then allow
+        - only safe methods otherwise not allowed to perform any operation
+    Ex: permission.py
+    from rest_framework.permissions import BasePermission,SAFE_METHODS
+    class SunnyPermission(BasePermission):
+        def has_permission(self,request,view):
+            username=request.user.username  # get authenticate user's name
+            if username.lower()=='sunny':   # if username is sunny then perform all operations
+                return True
+            elif username != '' and len(username) %2 == 0 and request.method in SAFE_METHODS:   # username is not Empty & length of username must be even num & request method is SAFE_METHODS(Get, opetions, head).
+                return True
+            else:
+                return False    

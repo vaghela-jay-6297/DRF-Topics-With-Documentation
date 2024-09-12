@@ -1,0 +1,140 @@
+{
+	"info": {
+		"_postman_id": "b125d5f9-e8fc-4984-b6e5-ce8a661214a5",
+		"name": "pagination",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34945039"
+	},
+	"item": [
+		{
+			"name": "PageNumberPagination",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api5/",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api5",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PNP: with passing custom page size",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api5/?mypage=2&page_size=8",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api5",
+						""
+					],
+					"query": [
+						{
+							"key": "mypage",
+							"value": "2"
+						},
+						{
+							"key": "page_size",
+							"value": "8"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PNP: access end page with passing str",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api5/?mypage=endpage&page_size=6",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api5",
+						""
+					],
+					"query": [
+						{
+							"key": "mypage",
+							"value": "endpage"
+						},
+						{
+							"key": "page_size",
+							"value": "6"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Limitoffsetpagination",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api5/?mylimit=8&myoffset=21",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api5",
+						""
+					],
+					"query": [
+						{
+							"key": "mylimit",
+							"value": "8"
+						},
+						{
+							"key": "myoffset",
+							"value": "21"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CursonPagination",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,52 @@
+ModelSerializers:
+ If our serializable objects are Django model objects, then it is highly recommended to
+go for ModelSerializer.
+ ModelSerializer class is exactly same as regular serializer classe except the following
+differences
+
+1) The fields will be considered automatically based on the model and we are not
+required to specify explicitly.
+2) It provides default implementation for create() and update() methods.
+
+Note: ModelSerializer won't provide any extra functionality and it is just for typing
+shortcut.
+
+We can define ModelSerializer class as follows:
+1) class EmployeeSerializer(serializers.ModelSerializer):
+2) class Meta:
+3) model=Employee
+4) fields='__all__'
+
+Here we are not required to specify fields and these will be considered automatically
+based on Model class. We are not required to implement create() and update() methods,
+because ModelSerializer class will provide these methods.
+
+***Note: If we want to define validations for any field then that particular field we have
+to declare explicitly.
+
+1) def multiples_of_1000(value):
+    2) print('validations by using validator')
+    3) if value % 1000 != 0:
+        4) raise serializers.ValidationError('Salary should be multiples of 1000s')
+
+5) class EmployeeSerializer(serializers.ModelSerializer):
+    6) esal=serializers.FloatField(validators=[multiples_of_1000,])
+    7) class Meta:
+        8) model=Employee
+        9) fields='__all__'
+
+Q) In how many Ways we can specify Fields in ModelSerializer Class?
+3 Ways
+
+1) To include all fields
+fields = '__all__'
+
+2) To include only some fields
+fields = ('eno','ename','eaddr')
+This approach is helpful if we want to include very less number of fields.
+
+3) To exclude some fields
+exclude = ('esal')
+Except esal, all remaining fields will be considered.
+
+If we want to consider majarity of the fileds then this approach is helpful.

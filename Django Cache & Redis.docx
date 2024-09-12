@@ -1,0 +1,46 @@
+What is Redis?
+---------------
+- Redis is a fast, open-source, in-memory data store that is often used as a cache and message broker. It supports various data structures such 
+as strings, hashes, lists, sets, and more, which makes it versatile for different use cases. The name "Redis" stands for Remote Dictionary Server.
+
+Common Use Cases for Redis:
+---------------------------
+1) Caching: Storing frequently accessed data in Redis can significantly reduce the time it takes to fetch this data compared to 
+fetching it from a slower database.
+2) Session Storage: Redis is often used to store session data for web applications, providing fast access and the ability to 
+share session data across multiple servers.
+3) Real-time Analytics: Because of its high-speed data access, Redis is suitable for applications that require real-time 
+data analysis and tracking.
+4) Message Queues: Redis supports pub/sub messaging, making it ideal for implementing message queues and real-time communication systems.
+5) Leaderboards/Counting: Redis is commonly used to maintain real-time leaderboards and counters due to its efficient handling of data 
+structures like sorted sets.
+
+
+
+What is Cache in Django?
+------------------------
+- A cache is an information technology for the temporary storage(caching) of web documents, such as web pages, images,
+and other types of web multimedia, to reduce server lag. 
+- Caching is one of those methods which a website implements to become faster. It is cost efficient and saves CPU processing time.
+- django comes with a robust cache system that lets you save dynamic pages so they don't have to be calculated for each request.
+- you can cache the output of specific views, you can cache only the pieces that are difficult to produce , or you 
+cache entire site. 
+
+Types of Caching in Django:
+--------------------------- 
+Django supports several types of caching:
+I) In-memory Cache: Stores data in the memory of the server (e.g., using Memcached or Redis). It's very fast but the data is lost when 
+the server restarts.
+II) File-based Cache: Stores cache data in files on the disk. It's slower than in-memory caching but more persistent.
+III) Database Cache: Stores cache data in the database. It's useful if you have multiple servers and want to share the cache among them.
+IV) Custom Cache: Allows you to implement your own caching logic if the built-in options do not meet your requirements.
+
+Setting Up Cache in Database:
+-----------------------------
+Ex: settings.py
+CACHES = {
+   'default': {
+      'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+      'LOCATION': 'my_table_name',
+   }
+}

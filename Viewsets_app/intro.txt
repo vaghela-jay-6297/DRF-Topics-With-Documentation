@@ -1,0 +1,42 @@
+In Django, ViewSet and ModelViewSet are powerful tools provided by the Django REST framework to simplify the creation of API views.
+
+1). ViewSet
+- A ViewSet is a class that allows you to define a set of related views in one place. Instead of writing separate views for each action 
+(like listing, creating, updating, or deleting resources), you can group them together in a single class. This helps keep your code organized 
+and DRY (Don't Repeat Yourself).
+Ex:
+from rest_framework import viewsets
+class MyViewSet(viewsets.ViewSet):
+    def list(self, request):
+        # Code to list resources
+        pass
+    def create(self, request):
+        # Code to create a new resource
+        pass
+
+    # Other actions like retrieve, update, delete...
+
+2). ModelViewSet
+- A ModelViewSet is a special type of ViewSet that is specifically designed to work with Django models. It automatically provides 
+implementations for common actions (like list, create, retrieve, update, and destroy) based on a given model. This means you get a 
+full set of CRUD (Create, Read, Update, Delete) operations with minimal code.
+Ex:
+from rest_framework import viewsets
+from .models import MyModel
+from .serializers import MyModelSerializer
+
+class MyModelViewSet(viewsets.ModelViewSet):
+    queryset = MyModel.objects.all()
+    serializer_class = MyModelSerializer
+
+Note: in below code base_name is optional because we are use modelViewset. 
+router.register('modelViewset', views.EmployeeCRUD_CBV, base_name='modelViewset')
+
+Note:: With ModelViewSet, you don't need to manually define the actions like in ViewSet. It uses the model and serializer to automatically 
+provide the full set of actions.
+
+
+Note:
+1) In the case of POST, PUT and PATCH Requests,we have to provide input data as the
+part of Body in Postman.
+2) Authentication information we have to provide in Headers part in Postman.

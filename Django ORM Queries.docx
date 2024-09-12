@@ -1,0 +1,301 @@
+String Lookup Operators:
+************************
+
+1) exact: Matches values that are exactly equal to the given string.
+    books = Book.objects.filter(title__exact='Django for Beginners')
+
+2) iexact: Case-insensitive version of exact.
+    books = Book.objects.filter(title__iexact='django for beginners')
+
+3) contains: Matches values that contain the given string
+    books = Book.objects.filter(title__contains='Django')
+
+4) icontains: Case-insensitive version of contains.
+    books = Book.objects.filter(title__icontains='django')
+
+5) startswith: Matches values that start with the given string.
+    books = Book.objects.filter(title__startswith='Django')
+
+6) istartswith: Case-insensitive version of startswith
+    books = Book.objects.filter(title__istartswith='django')
+
+7) endswith: Matches values that end with the given string.
+    books = Book.objects.filter(title__endswith='Beginners')
+
+8) iendswith: Case-insensitive version of endswith.
+    books = Book.objects.filter(title__iendswith='beginners')
+
+
+Numeric Lookup Operatorss:
+**************************
+
+1) gt: Greater than
+    books = Book.objects.filter(price__gt=20)
+
+2) gte: Greater than or equal to.
+    books = Book.objects.filter(price__gte=20)
+
+3) lt: Less than
+    books = Book.objects.filter(price__lt=30)
+
+4) lte: Less than or equal to.
+    books = Book.objects.filter(price__lte=30)
+
+
+Date and Time Lookup Operators:
+*******************************
+
+1) year: Matches entries with a specific year.
+    books = Book.objects.filter(published_date__year=2020)
+
+2) month: Matches entries with a specific month.
+    books = Book.objects.filter(published_date__month=5)
+
+3) day: Matches entries with a specific day.
+    books = Book.objects.filter(published_date__day=24)
+
+4) week_day: Matches entries with a specific day of the week (1=Sunday, 7=Saturday).
+    books = Book.objects.filter(published_date__week_day=2)
+
+5) date: Matches entries with a specific date.
+    books = Book.objects.filter(published_date__date='2020-05-24')
+
+
+Other Lookup Operators:
+***********************
+
+1) isnull: Check if a value is null.
+    books = Book.objects.filter(author__isnull=True)
+
+2) in: Check if a value is in a list.
+    books = Book.objects.filter(author__name__in=["Author 1", "Author 2"])
+
+3) exact: Matches entries with an exact value (also used for relationships).
+    author = Author.objects.get(name='Author 1')
+    books = Book.objects.filter(author__exact=author)
+
+4) regex: Match a regular expression.
+    books = Book.objects.filter(title__regex=r'^[A-Z]')
+
+5) iregex: Case-insensitive regular expression match.
+    books = Book.objects.filter(title__iregex=r'^[a-z]')
+
+
+Creation and Retrieves:
+**********************
+
+1) Creating Records: Creates and saves a new record in the database.
+    book = Book.objects.create(title="Django for Beginners", author="William S. Vincent", published_date="2018-01-01", isbn="9781735467207", price="29.99")
+
+2) Retrieving All Records: Retrieves all records from the Book model.
+    books = Book.objects.all()
+
+3) Retrieving a Single Record: Retrieves a single record with the primary key value of 1.
+    book = Book.objects.get(pk=1)
+
+4) Filtering Records: Retrieves all records that match the filter criteria.
+    books_by_author = Book.objects.filter(author="William S. Vincent")
+
+5) Excluding Records: Retrieves all records that do not match the filter criteria.
+    books_not_by_author = Book.objects.exclude(author="William S. Vincent")
+
+6) Ordering Records: Orders the records by the published_date field.
+    books_ordered = Book.objects.order_by('published_date')
+
+
+Updating and Deleting:
+**********************
+
+1) Updating a Record: Retrieves a record, updates its fields, and saves it.
+    book = Book.objects.get(pk=1)
+    book.price = 24.99
+    book.save()
+
+2) Bulk Updating Records: Updates multiple records that match the filter criteria.
+    Book.objects.filter(author="William S. Vincent").update(price=19.99)
+
+3) Deleting a Record: Deletes a specific record.
+    book = Book.objects.get(pk=1)
+    book.delete()
+
+4) Bulk Deleting Records: Deletes all records that match the filter criteria.
+    Book.objects.filter(author="William S. Vincent").delete()
+
+
+Aggregation and Annotation:
+***************************
+- Django provides aggregation functions like Count, Avg, Max, Min, and Sum.
+
+1) Counting Records: Counts the total number of records.
+    num_books = Book.objects.count()
+
+2) Aggregation: Computes the average price of all books.
+    from django.db.models import Count, Avg, Max, Min, Sum
+    average_price = Book.objects.all().aggregate(Avg('price'))
+    max_price = Book.objects.all().aggregate(Max('price'))
+    min_price = Book.objects.all().aggregate(Min('price'))
+    total_price = Book.objects.all().aggregate(Sum('price'))
+
+3) Annotating Querysets: Adds an annotation to each record, such as the count of related authors.
+- You can use annotations to add additional information to each record in a queryset.
+    books_with_author_count = Book.objects.annotate(num_authors=Count('author'))
+
+Summary
+- Aggregation: Computes summary values like Count, Avg, Sum over a queryset.
+- Annotation: Adds calculated fields to each object in a queryset, often using aggregation functions.
+
+
+Complex Lookups:
+***************
+Q Queries:
+- Q queries are used when you need to combine multiple conditions in a query, especially with logical operators like OR, AND, and NOT. They allow 
+for more complex lookups that can't be achieved with simple filter() calls.
+- Q objects are used to build complex queries with OR(|), AND(&), and NOT(~) logic. They are particularly useful for combining multiple conditions.
+
+Ex: Suppose you have a Book model and you want to find books that either have a price less than $30 or were published before 2020.
+    from django.db.models import Q
+    # Using Q to combine conditions with OR
+    books = Book.objects.filter(Q(price__lt=30) | Q(published_date__lt='2020-01-01'))   # or operators
+    # Usage
+    for book in books:
+        print(book.title, book.price, book.published_date)
+
+
+F Queries:
+- F queries are used when you need to compare the values of two fields within the same model or perform database operations that involve
+model fields directly. They allow you to reference fields on the right-hand side of expressions.
+- F objects are used to refer to model field values directly in queries. They are useful for performing database operations 
+involving model fields.
+
+Ex:Suppose you have a Book model with price and discounted_price fields, and you want to find books where the price is greater than the discounted_price.
+    from django.db.models import F
+    # Using F to compare field values
+    books = Book.objects.filter(price__gt=F('discounted_price'))
+    # Usage
+    for book in books:
+        print(book.title, book.price, book.discounted_price)
+
+
+Summary:
+-------
+- Q Queries: Use Q for combining multiple conditions with logical operators (OR, AND, NOT).
+- F Queries: Use F for comparing field values within the same model or performing operations involving fields.
+
+
+Query Optimization:
+******************
+Select Related:
+- select_related is used to create SQL joins and retrieve related objects in a single query. This is useful for foreign key and one-to-one 
+relationships, improving performance by reducing the number of database queries.
+
+- Retrieves related objects using SQL joins in a single query.  (apply inner join on all ForeignKey of a slected table.)
+- Suitable for foreign key and one-to-one relationships.(one to many, one to one relation)
+- Improves performance by minimizing database queries.
+- Useful when accessing related objects immediately after retrieving the main objects.
+
+- Ex: For instance, if we have models Author and Book where Book has a foreign key to Author, using select_related('author') when 
+querying Book objects will fetch related Author objects in one query. This is particularly useful when accessing related fields of 
+Author along with Book.
+
+
+Note: you can also use all() method to get all records into multiple queries but in select_related you can get all record in a single query.
+
+Ex:
+    # Models
+    class Author(models.Model):
+        name = models.CharField(max_length=100)
+
+    class Book(models.Model):
+        title = models.CharField(max_length=100)
+        author = models.ForeignKey(Author, on_delete=models.CASCADE)
+
+    # Query
+    books = Book.objects.select_related('2').all()
+
+    # Usage
+    for book in books:
+        print(book.title, book.author.name)
+
+
+
+Prefetch Related:
+- prefetch_related is used for fetching related objects in separate queries and then performing a join in Python. This is useful 
+for many-to-many and reverse foreign key relationships.
+
+- Fetches related objects in separate queries and performs join in Python.
+- Suitable for many-to-many and reverse foreign key relationships.(many to many, many to one relation)
+- Helps avoid the N+1 query problem and handles large datasets efficiently. (first run first query, run second query)
+- Useful when accessing related objects later or in a loop after retrieving the main objects.
+
+- Ex: For example, consider models Book and Genre with a many-to-many relationship. Using prefetch_related('genres') when querying 
+Book objects will fetch all related Genre objects for each Book in separate queries and then efficiently join them in Python. 
+
+Ex: 
+    # Models
+    class Book(models.Model):
+        title = models.CharField(max_length=100)
+
+    class Review(models.Model):
+        book = models.ForeignKey(Book, on_delete=models.CASCADE)
+        content = models.TextField()
+
+    # Query
+    books = Book.objects.prefetch_related('review_set').all()
+
+    # Usage
+    for book in books:
+        for review in book.review_set.all():
+            print(book.title, review.content)
+
+
+Conditional expressions:
+************************
+Case, When, and Then Queries:
+- Case: A conditional expression that allows you to define complex conditional logic, similar to SQL's CASE statement.
+- When: Used inside Case to define conditions and corresponding results.
+- Then: Implied in When; specifies the result when the condition is true.
+
+Ex: Suppose you have a Book model and you want to categorize books based on their pric
+    from django.db.models import Case, When, Value
+    from django.db.models import CharField
+    # Query
+    books = Book.objects.annotate(
+        price_category=Case(
+            When(price__gt=50, then=Value('Expensive')),
+            When(price__lte=50, then=Value('Affordable')),
+            default=Value('Unknown'),
+            output_field=CharField()
+        )
+    )
+    # Usage
+    for book in books:
+        print(book.title, book.price_category)
+
+- Case: Defines the conditional logic; When: Specifies conditions (price__gt=50) and results (Value('Expensive')).; Then: Implied in When to specify the result if the condition is true.
+This query categorizes books as "Expensive" if the price is greater than 50, "Affordable" if 50 or less, and "Unknown" otherwise.
+
+
+
+Note: add below code into settings.py to get sql query when you run the django ORM query.
+-----------------------------------------------------------------------------------------
+LOGGING = {
+    'version': 1,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+        }
+    }
+}

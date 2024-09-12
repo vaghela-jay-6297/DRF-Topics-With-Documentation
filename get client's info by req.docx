@@ -1,0 +1,60 @@
+Requirement:
+------------
+- If we are sending the request to django application, it will provide the following information as the part of response
+client's ipaddress, client's city, client's state, client's country, etc..,
+ 
+
+- ipstack.com is 3rd vendor provides API to get complete client information.
+- Once we registered in this website then we will get FREE API KEY. With that key we have to send the request.
+
+Response :
+url: http://api.ipstack.com/183.82.219.127?access_key=3dc63ae05b2288d3bdb6ceaf97f18505
+json response: {"ip":"183.82.219.127","type":"ipv4","continent_code":"AS","continent_name":"Asia","country_code":"IN",
+            "country_name":"India","region_code":"TG","region_name":"Telangana","city":"Prakashamnagar","zip":"500016",
+            "latitude":17.4427,"longitude":78.4751,"location":{"geoname_id":10524299,"capital":"NewDelhi",
+            "languages":[{"code":"hi","name":"Hindi","native":"\u0939\u093f\u0928\u094d\u0926\u0940"},
+            {"code":"en","name":"English","native":"English"}],"country_flag":"http:\/\/assets.ipstack.com\/flags\/in.svg","country_flag_emoji":"\ud83c\uddee\ud83c\uddf3",
+            "country_flag_emoji_unicode":"U+1F1EE U+1F1F3","calling_code":"91","is_eu":false}}
+
+
+Demo Application:
+----------------
+Ex: views.py
+from django.shortcuts import render
+import requests
+def get_geographic_info(request):
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', "") or request.META.get ('REMOTE_ADDR')
+    print(ip)
+    url='http://api.ipstack.com/'+str(ip)+'?access_key= 3dc63ae05b2288d3bdb6ceaf97f18505'   # get clients ip and convert into str 
+    # url='http://api.ipstack.com/183.82.219.127?access_key=3dc63ae05b2288d3bdb6ceaf97f18505'  # pass static ip
+    response=requests.get(url)
+    data=response.json()
+    return render(request,'testapp/info.html',data)
+
+Ex: templates/info.html
+<body>
+    <h1>Consuming External API Demo</h1><hr>
+    <h2>Your Geographic Information</h2>
+    <h3>Your IP Address:{{ip}}</h3>
+    <h3>Your continent_name:{{continent_name}}</h3>
+    <h3>Your country_name:{{country_name}}</h3>
+    <h3>Your region_name:{{region_name}}</h3>
+    <h3>Your city:{{city}}</h3>
+    <h3>Your zip:{{zip}}</h3>
+    <h3>Your longitude:{{longitude}}</h3>
+    <h3>Your latitude:{{latitude}}</h3>
+</body>
+
+Ex: urls.py
+from django.conf.urls import url
+from django.contrib import admin
+from testapp import views
+urlpatterns = [
+    path(r'^admin/', admin.site.urls),
+    path(r'^info/', views.get_geographic_info),
+]
+
+
+
+
+

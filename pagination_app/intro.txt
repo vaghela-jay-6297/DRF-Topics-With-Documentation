@@ -1,0 +1,178 @@
+pagination:
+------------
+- Pagination in Django REST Framework (DRF) refers to the process of dividing large datasets into smaller, 
+manageable chunks (pages). This is particularly useful in APIs to limit the amount of data sent in a single response, 
+which can enhance performance and improve user experience by reducing load times and memory usage.
+
+- Pagination is the splitting of large datasets into separated pages.
+- Whenever we are performing list operation(GET), if the number of resources is very huge, then we should go for pagination.
+
+- DRF provides several built-in pagination styles that you can use out-of-the-box or customize to suit your needs. 
+Here are the main types of pagination offered by DRF:
+1) PageNumberPagination
+2) LimitOffsetPagination
+3) CursorPagination
+
+- All these classes present in rest_framework.pagination module.
+
+How to enable Pagination Globally:
+*********************************
+In settings.py, we have to add the following code:
+Ex: settings.py
+REST_FRAMEWORK={
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE':10,
+}
+This pagination is applicable for all view classes.
+
+How to enable Pagination Locally:
+*********************************
+We can specify by using pagination_class variable.
+Ex. views.py
+from rest_framework.pagination import PageNumberPagination
+class EmployeeAPIView(generics.ListAPIView):
+    queryset =Employee.objects.all()
+    serializer_class =EmployeeSerializer
+    pagination_class = PageNumberPagination
+
+Note: default pagination concept is avaialble only for generic views and viewsets. If weare using regular APIView,
+then we have to write pagination code explicitly.
+Note: pagination concept only works for ListView because only in listview we can get all records from DB.
+
+1) PageNumberPagination:
+Ex. pagination.py
+from rest_framework.pagination import PageNumberPagination
+class MyPagination(PageNumberPagination):
+    page_size = 5   
+    page_query_param = 'mypage' 
+    page_size_query_param = 'page_size'   
+    max_page_size = 15  
+    last_page_strings = ('endpage', ) 
+
+
+Various Important allowed Parameters for PageNumberPagination:
+**************************************************************
+I) page_size:
+- It represents the number of records/resources per page. It overrides the value which is set for PAGE_SIZE 
+variable present in settings.py
+
+II) page_query_param:
+- A string value indicating the name of the query parameter to use for the pagination control. The default value is 'page'
+http://127.0.0.1:8000/api/?page=4
+Eg: page_query_param='mypage'
+http://127.0.0.1:8000/api/?mypage=4
+
+III) page_size_query_param:
+- If set, this is a string value indicating the name of a query parameter that allows the client to set the page size on a 
+per-request basis. Defaults to None, indicating that the client may not control the requested page size.
+Eg: page_size_query_param = 'required_page_size'
+http://127.0.0.1:8000/api/?required_page_size=10
+
+IV) max_page_size:
+- If set, this is a numeric value indicating the maximum allowable requested page size. This attribute is only valid if 
+page_size_query_param is also set. If client requesting page size which is greater than this value then only max_page_size will be considered.
+
+V) last_page_strings:
+- A list or tuple of string values indicating values that may be used with the page_query_param to request the final page in the set. 
+- Default value is ('last',)
+Eg: last_page_strings = ('end_page',)
+http://127.0.0.1:8000/api/?page=end_page
+http://127.0.0.1:8000/api/?required_page_size=10&page=end_page
+
+
+2) LimitOffsetPagination:
+- If the partner application (client application) wants a limited number of resources starts from the given offset 
+then we should go for LimitOffsetPagination.
+
+Eg: Client application required 20 resources starts from offset 10 (i.e from 10th index
+onwards)
+    - http://127.0.0.1:8000/api5/?limit=20&offset=10
+    - It returns the resources from 11th id to 30th id.
+
+Note: The offset is zero based. i.e the offset of first record is 0.
+
+Ex: pagination.py
+rom rest_framework.pagination import LimitOffsetPagination
+class MyPagination2(LimitOffsetPagination):
+    default_limit = 5  # default limit of records.
+    limit_query_param = 'mylimit'  # to customize query parameter. default parameter is limit.
+    offset_query_param = 'myoffset' # # to customize query parameter. default parameter is offset.
+    max_limit = 20  # maximum 20 records showing. 
+
+Ex: views.py
+from pagination_app.models import Vendor
+from pagination_app.serializer import VensorSerializer
+from rest_framework import generics
+from pagination_app.pagination import MyPagination2
+class VendorListView(generics.ListAPIView):
+    queryset = Vendor.objects.all()
+    serializer_class = VensorSerializer
+    pagination_class = MyPagination2
+
+
+Various Important Properties of LimitOffsetPagination Class:
+************************************************************
+I) default_limit: 
+- It represents the number of resources required to provide to the client per page. 
+- This value will be considered iff client won't provide any limit. If we are not configuring this property and 
+client won't provide limit then the value will be considered from PAGE_SIZE variable of settings.py
+
+II) limit_query_param: 
+- It represents the query parameter name which can be used to provide limit value by the client. 
+- The default parameter name is 'limit'
+
+III) offset_query_param: 
+- It represents the query parameter name which can be used to provide offset value by the client. 
+- The default parameter name is 'offset'
+
+IV) max_limit: 
+- We can use this parameter to limit maximum number of resources per page.
+- If the client requests more than this value then, it returns the number of resources specified by max_limit only.
+
+
+3) CursorPagination:
+- If we want resources based on some 'ordering' then we should go for CursorPagination.
+Eg: To get aAll records according to ascending order of employee salaries but 5 resources per page.
+Ex: pagination.py
+from rest_framework.pagination import CursorPagination
+class MyPagination3(CursorPagination):
+    ordering = 'vsal'   # asending order by vsal, if you want in desending order just pass - only like '-vsal'.
+    page_size = 5 # get 5 records per page.
+
+
+Various Important Properties of CursorPagination Class:
+******************************************************
+I) ordering:
+- We can use this field to specify the required order.
+    ordering = 'esal' #based on ascending order of employee salaries
+    ordering = '-esal' #based on descending order of employee salaries
+- The default value of ordering fields is '-created'
+
+II) page_size: 
+- It can be used to specify the number of records per page. It is exactly same as PageNumberPagination class page_size
+
+III) cursor_query_param:
+- It can be used to specify the name of the cursor query parameter. Default value is 'cursor'
+
+
+
+Difference between PageNumberPagination vs LimitOffsetPagination vs CursorPagination:
+-------------------------------------------------------------------------------------
+1) If we want all resources page by page then we should go for PageNumberPagination.
+   - Here we can specify only page_size and we cannot specify offset and ordering.
+   - Divides data into numbered pages, allowing users to navigate by specifying a page number (e.g., ?page=2).
+
+2) If we want the resources based on specified limit and offset then we should go for LimitOffsetPagination. 
+   - Here we have choice to specify offset value from where we have to consider resources. We cannot specify ordering.
+   - Uses limit and offset parameters to control the number of items returned and the starting point of the data (e.g., ?limit=10&offset=20).
+
+3) If we want all resources based on some ordering then we should go for CursorPagination. 
+   - Here we can specify page_size and orderning and we cannot specify offset value.
+   - Uses a cursor to keep track of the position in the dataset, providing efficient pagination for large data sets
+    without exposing the data's ordering (e.g., ?cursor=abcdef).
+
+
+
+
+
+

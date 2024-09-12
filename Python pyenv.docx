@@ -1,0 +1,82 @@
+- Pyenv is a tool used for managing multiple Python versions on a single system. It allows you to easily switch between different 
+versions of Python, ensuring that projects can use the specific versions they require without conflicts. Here’s a detailed explanation 
+of its use and commands:
+
+
+Why Use Pyenv?
+---------------
+1. Multiple Python Versions: Developers often work on multiple projects, each requiring different Python versions. 
+    Pyenv allows seamless switching between these versions.
+
+2. Isolation: It helps in isolating the Python environment for each project, ensuring that dependencies and 
+    versions do not interfere with each other.
+
+3. Testing: It facilitates testing code across different Python versions without the need for virtual machines or containers.
+
+4. Ease of Use: Pyenv simplifies the process of installing and managing Python versions, removing the need for complex configurations.
+
+
+Installing Pyenv:
+------------------
+On macOS or Linux:
+# Install dependencies
+sudo apt-get update; sudo apt-get install -y make build-essential libssl-dev zlib1g-dev \
+libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev \
+python-openssl git
+
+# Install pyenv
+curl https://pyenv.run | bash
+
+# Add pyenv to bash so that it loads every time you open a terminal
+echo -e '\n# Pyenv Setup' >> ~/.bashrc
+echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
+echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+
+# Restart your shell
+exec "$SHELL"
+
+
+Basic Commands:
+---------------
+1. Install a Python Version:
+    - pyenv install 3.9.6
+
+2. List Installed Versions:
+    - pyenv versions 
+
+3. python installed location
+    - pyenv which python
+
+4. Set Global Python Version:
+    - pyenv global 3.9.6
+
+5. Set Local Python Version:
+    - pyenv local 3.8.10
+
+6. Switch Python Versions:
+    - pyenv shell 3.7.9
+
+7. Uninstall a Python Version:
+    - pyenv uninstall 3.7.9
+
+8. Upgrade pyenv:
+    - pyenv update
+
+
+Using Pyenv with Virtual Environments:
+--------------------------------------
+1. Install pyenv-virtualenv:
+    - git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+        echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+        exec "$SHELL"
+
+2. Create a Virtual Environment:
+    - pyenv virtualenv 3.9.6 myenv
+
+3. Activate the Virtual Environment:
+    - pyenv activate myenv
+
+4. Deactivate the Virtual Environment:
+    - pyenv deactivate

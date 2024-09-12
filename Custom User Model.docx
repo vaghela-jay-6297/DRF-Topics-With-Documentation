@@ -1,0 +1,88 @@
+- AbstractUser and AbstractBaseUser are both abstract classes provided by Django's authentication system, allowing developers to create 
+custom user models.
+
+AbstractUser:
+*************
+- AbstractUser is a fully featured user model class provided by Django that includes fields like username, email, password, first name, 
+last name, and many more. It is designed to be extended to add additional fields or methods while retaining the existing functionalities 
+of the default user model.
+
+Ex: models.py
+    from django.contrib.auth.models import AbstractUser
+    from django.db import models
+
+    class CustomUser(AbstractUser):
+        # Add additional fields here
+        phone_number = models.CharField(max_length=15, blank=True, null=True)
+        birth_date = models.DateField(blank=True, null=True)
+
+        def __str__(self):
+            return self.username
+
+- In this example, CustomUser extends AbstractUser to include additional fields like phone_number and birth_date. This way, you retain all 
+the fields and functionalities of the default user model while adding custom fields.
+
+
+AbstractBaseUser:
+*****************
+- AbstractBaseUser provides only the core implementation of a user model. It includes fields like password and last login, but it does not 
+include fields like username or email. It is more flexible than AbstractUser because it allows you to define a completely custom user model 
+from scratch, including your own authentication mechanism.
+
+Ex: models.py
+    from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+    from django.db import models
+    from django.utils.translation import gettext_lazy as _
+
+    class CustomUserManager(BaseUserManager):
+        def create_user(self, email, password=None, **extra_fields):
+            if not email:
+                raise ValueError(_('The Email field must be set'))
+            email = self.normalize_email(email)
+            user = self.model(email=email, **extra_fields)
+            user.set_password(password)
+            user.save(using=self._db)
+            return user
+
+        def create_superuser(self, email, password=None, **extra_fields):
+            extra_fields.setdefault('is_staff', True)
+            extra_fields.setdefault('is_superuser', True)
+
+            return self.create_user(email, password, **extra_fields)
+
+    class CustomUser(AbstractBaseUser):
+        email = models.EmailField(unique=True)
+        first_name = models.CharField(max_length=30)
+        last_name = models.CharField(max_length=30)
+        is_active = models.BooleanField(default=True)
+        is_staff = models.BooleanField(default=False)
+        is_superuser = models.BooleanField(default=False)
+        date_joined = models.DateTimeField(auto_now_add=True)
+
+        objects = CustomUserManager()
+
+        USERNAME_FIELD = 'email'
+        REQUIRED_FIELDS = ['first_name', 'last_name']
+
+        def __str__(self):
+            return self.email
+
+- In this example:
+    - CustomUserManager is a custom manager class that handles user creation.
+    - CustomUser is a custom user model that uses email as the unique identifier instead of username.
+    - USERNAME_FIELD is set to email, meaning users will log in using their email address.
+    - REQUIRED_FIELDS lists the fields required in addition to the USERNAME_FIELD.
+
+Using the Custom User Model:
+****************************
+- After defining your custom user model, make sure to update your settings.py to use it:
+Ex: settings.py 
+    AUTH_USER_MODEL = 'yourapp.CustomUser'
+
+
+
+Choosing Between AbstractUser and AbstractBaseUser:
+***************************************************
+- Use AbstractUser if you need the standard user functionality with a few additional fields.
+- Use AbstractBaseUser if you need a custom user model with fields and methods that are entirely different from Django's default user model.
+

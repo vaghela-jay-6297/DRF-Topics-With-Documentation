@@ -1,0 +1,95 @@
+DRF-Filtering:
+--------------
+Searching/Filtering:
+--------------------
+
+We can implement Search/Filter operation in the following 2 ways
+1) Planin Vanilla Filtering (own custom logic)
+2) By using Django RestFramework API
+
+1) Planin Vanilla Filtering (own custom logic):
+- We can implement Search operation by overriding get_queryset() method in our view class.
+
+Ex. views.py
+class VendorListAPI(generics.ListAPIView):
+    # queryset = Vendor.objects.all()   # we dont have to write this line because we override get_queryset() method.
+    serializer_class = VensorSerializer
+    def get_queryset(self):
+        qs = Vendor.objects.all()
+        name = self.request.GET.get('vname')
+        if name is not None:
+            qs = qs.filter(vname__icontains=name)
+        return qs
+
+For the request: http://127.0.0.1:8000/api/     Returns all Employee records without any filtering
+For the request: http://127.0.0.1:8000/api/?ename=Jhon  Returns Employee records where ename contains 'Jhon'.In this case the records will be filtered
+
+Limitation of Vanilla Filtering:
+*******************************
+- It is very difficult to implement filtering based on some complex conditions. To overcome this problem we should go 
+for DRF provided advanced Filtering concept.
+
+2) By using Django RestFramework API:
+- It is more advanced filtering and easy to implement when compared with Vanilla Filtering.
+- We have to add filter backend in settings.py as follows:
+    Ex. settings.py
+        REST_FRAMEWORK={
+        ....,
+        'DEFAULT_FILTER_BACKENDS':('rest_framework.filters.SearchFilter',),
+        'SEARCH_PARAM':'mysearch'
+        }
+- The default value for 'SEARCH_PARAM' is 'search', which can be used by partner application to send value for the search.
+
+- In the views.py we have to specify 'search_fields' as follows
+    Ex: views.py
+        class EmployeeAPIView(generics.ListAPIView):
+            queryset =Employee.objects.all()
+            serializer_class =EmployeeSerializer
+            search_fields=('ename','eno')   # ename | eno (perform or operation here.) 
+
+Note:
+1) search_fields=('eno',)
+    http://127.0.0.1:8000/api/?mysearch=2   It returns all Employee records where eno contains '2'
+
+2) search_fields=('=eno',)
+    http://127.0.0.1:8000/api/?mysearch=2   It returns all Employee records where eno is exactly equals to '2'
+
+3) search_fields=('^eno',)
+    http://127.0.0.1:8000/api/?mysearch=2   It returns all Employee records where eno is starts with '2'
+
+Note:
+'=' means exact match
+'^' means starts with
+search_fields=('eno$',) -> ends with specified digit ---> won't work
+
+
+
+Ordering:
+---------
+- We can order either in ascending or in descending based on given parameter.
+- We have to add filter backend in settings.py as follows:
+    Ex. settings.py
+        REST_FRAMEWORK={
+        ....,
+        'DEFAULT_FILTER_BACKENDS':('rest_framework.filters.SearchFilter','rest_framework.filters.OrderingFilter'),
+        'SEARCH_PARAM':'mysearch',
+        'ORDERING_PARAM':'myordering'
+        }
+    
+- The default value for 'ORDERING_PARAM' is 'ordering'
+- In the browsable API, we can see orderning based on every field.
+
+- But, we can specify our own ordering fields also based on our requirement.
+Ex: views.py
+class VendorListAPI(generics.ListAPIView):
+    queryset = Vendor.objects.all()   # we dont have to write this line because we override get_queryset() method.
+    serializer_class = VensorSerializer
+    ordering_fields = ('vsal', 'vaddr') # ordering records based on this fields.
+    search_fields = ('vname',)  # contains 
+
+Note: The default value for ordering_fields is : '__all__'
+
+Client can send request with search and ordering parameters as follows
+http://127.0.0.1:8000/api6/?search=J
+http://127.0.0.1:8000/api6/?ordering=-vsal
+http://127.0.0.1:8000/api6/?search=J&ordering=-vsal
